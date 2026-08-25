@@ -10,6 +10,7 @@ FeaturePacks/
 Saved/Config/WindowsEditor/GameUserSettings.ini
 
 # Visual Studio files
+.vs/
 *.sln
 *.suo
 *.user
