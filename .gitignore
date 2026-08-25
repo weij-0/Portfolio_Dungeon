@@ -6,6 +6,9 @@ Intermediate/
 Saved/
 FeaturePacks/
 
+# Built data for maps (Added from auto-gen template)
+*_BuiltData.uasset
+
 # Local project user settings
 Saved/Config/WindowsEditor/GameUserSettings.ini
 
@@ -18,6 +21,7 @@ Saved/Config/WindowsEditor/GameUserSettings.ini
 *.sdf
 *.opensdf
 *.VC.db
+*.VC.opendb
 *.csproj
 .vcxproj
 *.ncb
@@ -40,6 +44,12 @@ Saved/Config/WindowsEditor/GameUserSettings.ini
 *.so
 *.apk
 
+# Precompiled Headers (Added from auto-gen template)
+*.gch
+*.pch
+*.slo
+*.lo
+
 # Logs and dumps
 *.log
 *.dmp
@@ -51,10 +61,10 @@ Saved/Config/WindowsEditor/GameUserSettings.ini
 *.autosave
 *.backup
 
-# Plugin build artifacts
-Plugins/*/Binaries/
-Plugins/*/Intermediate/
-Plugins/*/Saved/
+# Plugin build artifacts (Upgraded to deep recursive matching)
+Plugins/**/Binaries/
+Plugins/**/Intermediate/
+Plugins/**/Saved/
 
 # Git metadata
 *.orig
