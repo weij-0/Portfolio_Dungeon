@@ -14,8 +14,8 @@
 #include "MyPlayerController.h"
 #include "StaminaWidget.h"
 #include "ItemPickup.h"
+#include "HealthComponent.h"
 #include "InventoryComponent.h"
-
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -38,7 +38,9 @@ APlayerCharacter::APlayerCharacter()
 	/* Camera Boom */
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f;
+	CameraBoom->SetRelativeLocation(FVector(0.0f, 40.0f, 70.0f));
+	CameraBoom->TargetArmLength = 250.0f;
+	CameraBoom->SocketOffset = FVector(0.0f, 20.0f, 20.0f);
 	CameraBoom->bUsePawnControlRotation = true;
 
 	/* Follow Camera */
@@ -60,10 +62,16 @@ APlayerCharacter::APlayerCharacter()
 	GetCharacterMovement()->MaxWalkSpeed = NormalWalkSpeed;
 
 	/* Health */
-	CurrentHealth = MaxHealth;
+	PlayerCurrentHealth = PlayerMaxHealth;
+
+	/* Mana */
+	CurrentMana = MaxMana;
 	
 	/* Stamina */
 	CurrentStamina = MaxStamina;
+
+	/* Health Component */
+	PlayerHealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("PlayerHealthComponent"));
 
 	/* Inventory Component */
 	PlayerInventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("PlayerInventoryComponent"));
@@ -83,6 +91,11 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 
 	CachedPlayerController = Cast<AMyPlayerController>(NewController);
 
+	if (PlayerHealthComponent)
+	{
+		PlayerCurrentHealth = PlayerMaxHealth;
+		PlayerHealthComponent->InitializeHealth(PlayerMaxHealth, PlayerCurrentHealth);
+	}
 }
 
 // Called every frame
@@ -109,7 +122,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 		}
 		
 	}
-
 }
 
 // Called to bind functionality to input
@@ -301,24 +313,19 @@ void APlayerCharacter::HideStaminaWidget()
 	}
 }
 
-void APlayerCharacter::UpdateHUDHealth()
-{	
+void APlayerCharacter::UpdateHUDMana()
+{
 	if (CachedPlayerController && CachedPlayerController->GetHUD())
 	{
-		float NewPercent = FMath::Clamp(CurrentHealth / MaxHealth, 0.0f, 1.0f);
-		
-		CachedPlayerController->HUDWidget->UpdateHealthBar(NewPercent);
+		float NewPercent = FMath::Clamp(CurrentMana / MaxMana, 0.0f, 1.0f);
+
+		CachedPlayerController->HUDWidget->UpdateManaBar(NewPercent);
 	}
 }
 
 void APlayerCharacter::UpdateHUDStamina()
 {
 	float NewPercent = FMath::Clamp(CurrentStamina / MaxStamina, 0.0f, 1.0f);
-	
-	if (CachedPlayerController && CachedPlayerController->GetHUD())
-	{
-		CachedPlayerController->HUDWidget->UpdateStaminaBar(NewPercent);
-	}
 
 	if (StaminaWidgetComponent)
 	{

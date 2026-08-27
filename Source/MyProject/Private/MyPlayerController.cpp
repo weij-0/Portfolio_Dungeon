@@ -31,28 +31,32 @@ void AMyPlayerController::BeginPlay()
 				
 			}
 		}
-		
+	}
+}
 
-		// Create HUD
-		if (HUDWidgetClass)
+/* When 100% possessed: */
+
+void AMyPlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	// Create HUD
+	if (IsLocalController() && HUDWidgetClass)
+	{
+		HUDWidget = CreateWidget<UPlayerHUDWidget>(this, HUDWidgetClass);
+
+		if (HUDWidget)
 		{
-			HUDWidget = CreateWidget<UPlayerHUDWidget>(this, HUDWidgetClass);
+			HUDWidget->AddToViewport();
 
-			if (HUDWidget)
+			HUDWidget->SetCrosshairVisibility(false);
+
+			if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
 			{
-				HUDWidget->AddToViewport();
-
-				HUDWidget->SetCrosshairVisibility(false);
-
-				if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
-				{
-					// Update HUD (Initialize)
-					PlayerCharacter->UpdateHUDHealth();
-					PlayerCharacter->UpdateHUDStamina();
-				}
+				// Update HUD (Initialize)
+				PlayerCharacter->UpdateHUDMana();
+				PlayerCharacter->UpdateHUDStamina();
 			}
 		}
 	}
-
-	
 }

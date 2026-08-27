@@ -24,6 +24,8 @@ protected:
 
 	virtual void BeginPlay() override;
 	
+	virtual void OnPossess(APawn* InPawn) override;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<UPlayerHUDWidget> HUDWidgetClass;
 	

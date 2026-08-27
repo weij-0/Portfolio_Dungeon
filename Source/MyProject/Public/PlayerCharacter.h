@@ -14,6 +14,7 @@ struct FInputActionValue;
 class AMyPlayerController;
 class UWidgetComponent;
 class AItemPickup;
+class UHealthComponent;
 class UInventoryComponent;
 
 UCLASS()
@@ -26,6 +27,7 @@ public:
 	APlayerCharacter();
 
 protected:
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -68,6 +70,10 @@ protected:
 	// Stamina Widget
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	UWidgetComponent* StaminaWidgetComponent;
+
+	// Health Component
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
+	UHealthComponent* PlayerHealthComponent;
 
 	// Inventory Component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
@@ -138,13 +144,20 @@ private:
 
 	// Health
 	UPROPERTY(EditAnywhere, Category = "Health")
-	float MaxHealth = 100.0f;
+	float PlayerMaxHealth = 100.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health", meta = (AllowPrivateAccess = "true"))
-	float CurrentHealth;
+	float PlayerCurrentHealth;
+
+	// Mana
+	UPROPERTY(EditAnywhere, Category = "Mana")
+	float MaxMana = 100.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mana", meta = (AllowPrivateAccess = "true"))
+	float CurrentMana;
 
 	// Stamina
-	UPROPERTY(EditAnywhere, Category = "Health")
+	UPROPERTY(EditAnywhere, Category = "Stamina")
 	float MaxStamina = 100.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stamina", meta = (AllowPrivateAccess = "true"))
@@ -187,15 +200,16 @@ private:
 	AItemPickup* CurrentTargetPickup;
 
 	UPROPERTY(EditAnywhere, Category = "Item Pickup")
-	float InteractionTraceDistance = 250.0f;
+	float InteractionTraceDistance = 600.0f;
 
 public:
 
 	/* Update UI */
-	void UpdateHUDHealth();
+	void UpdateHUDMana();
 	void UpdateHUDStamina();
 
 	/* Interaction */
 	void PerformInteractionTrace();
 
+	
 };

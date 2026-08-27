@@ -9,6 +9,8 @@
 #include "MoverAComponent.h"
 #include "InventoryComponent.h"
 
+#include "Kismet/GameplayStatics.h"
+
 // Sets default values
 ALock::ALock()
 {
@@ -74,11 +76,15 @@ bool ALock::ProcessLockCheckInventory(AActor* ActorToCheck)
 		{
 			UItemBase* KeyItemInstance = InventoryComp->FindItemInstanceByID(KeyItemID);
 
+			//float DamageDealt = UGameplayStatics::ApplyDamage(ActorToCheck, 10.0f, ActorToCheck->GetInstigatorController(), this, UDamageType::StaticClass());
+
+			//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Damage: %f"), DamageDealt));
+
 			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("KeyItemID: %s"), *KeyItemID.ToString()));
 			
 			if (KeyItemInstance && InventoryComp->HasQuestItem(KeyItemInstance, KeyItemQty))
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("HasQuestItem")));
+				
 				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("KeyItemInstance: %s"), *KeyItemInstance->ItemID.ToString()));
 
 				SetIsKeyPlaced(true);

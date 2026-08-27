@@ -17,21 +17,25 @@ class MYPROJECT_API UPlayerHUDWidget : public UUserWidget
 	GENERATED_BODY()
 	
 public:
-	
+	UFUNCTION(BlueprintCallable, Category = "HUD")
 	void UpdateHealthBar(float Percent);
 
-	void UpdateStaminaBar(float Percent);
+	UFUNCTION(BlueprintCallable, Category = "HUD")
+	void UpdateManaBar(float Percent);
 
 	UFUNCTION(BlueprintCallable, Category = "HUD")
 	void SetCrosshairVisibility(bool bIsTargetingPickup);
 
 protected:
 
+	// Called when the widget is constructed (similar to BeginPlay)
+	virtual void NativeConstruct() override;
+
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	UProgressBar* HealthBar;
 
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	UProgressBar* StaminaBar;
+	UProgressBar* ManaBar;
 
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	UTextBlock* TextBlock_Crosshair;
