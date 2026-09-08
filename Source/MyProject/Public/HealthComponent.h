@@ -19,39 +19,39 @@ public:
 	// Sets default values for this component's properties
 	UHealthComponent();
 
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
-public:	
-
-	/* Functions */
-
-	UFUNCTION(BlueprintCallable, Category = "Health")
-	void InitializeHealth(float InitMaxHealth, float InitCurrentHealth);
-
 	/* Broadcast */
-
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnHealthChanged OnHealthChanged;
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnDeath OnDeath;
 	
-	/* Getter / Setter */
+	/* Functions */
 
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	void InitializeHealth(float InitMaxHealth, float InitCurrentHealth);
+
+	/* Getter / Setter */
+	UFUNCTION(BlueprintPure, Category = "Health")
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+
+	UFUNCTION(BlueprintPure, Category = "Health")
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
+
+	UFUNCTION(BlueprintPure, Category = "Health")
 	FORCEINLINE float GetCurrentHealthPercent() const { return (MaxHealth > 0.0f) ? CurrentHealth / MaxHealth : 0.0f; }
 
 protected:
 
+	// Called when the game starts
+	virtual void BeginPlay() override;
+
 	/* Properties */
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
 	float MaxHealth;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
 	float CurrentHealth;
 
 	/* Functions */

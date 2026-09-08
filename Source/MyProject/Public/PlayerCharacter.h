@@ -31,7 +31,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	virtual void PossessedBy(AController* NewController);
+	virtual void PossessedBy(AController* PlayerController);
 
 public:	
 	// Called every frame
@@ -143,21 +143,21 @@ private:
 	bool bCanDash = false;
 
 	// Health
-	UPROPERTY(EditAnywhere, Category = "Health")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Health", meta = (AllowPrivateAccess = "true"))
 	float PlayerMaxHealth = 100.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health", meta = (AllowPrivateAccess = "true"))
 	float PlayerCurrentHealth;
 
 	// Mana
-	UPROPERTY(EditAnywhere, Category = "Mana")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mana", meta = (AllowPrivateAccess = "true"))
 	float MaxMana = 100.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mana", meta = (AllowPrivateAccess = "true"))
 	float CurrentMana;
 
 	// Stamina
-	UPROPERTY(EditAnywhere, Category = "Stamina")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stamina", meta = (AllowPrivateAccess = "true"))
 	float MaxStamina = 100.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stamina", meta = (AllowPrivateAccess = "true"))

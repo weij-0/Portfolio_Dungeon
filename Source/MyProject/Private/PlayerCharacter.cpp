@@ -50,7 +50,7 @@ APlayerCharacter::APlayerCharacter()
 
 	/* Stamina Widget Component */
 	StaminaWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("StaminaWidgetComponent"));
-	StaminaWidgetComponent->SetupAttachment(GetMesh());
+	StaminaWidgetComponent->SetupAttachment(GetMesh(),FName("pelvis"));
 	StaminaWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	StaminaWidgetComponent->SetDrawAtDesiredSize(true);
 	StaminaWidgetComponent->SetVisibility(false);
@@ -85,11 +85,11 @@ void APlayerCharacter::BeginPlay()
 }
 
 // Cache Controller
-void APlayerCharacter::PossessedBy(AController* NewController)
+void APlayerCharacter::PossessedBy(AController* PlayerController)
 {
-	Super::PossessedBy(NewController);
+	Super::PossessedBy(PlayerController);
 
-	CachedPlayerController = Cast<AMyPlayerController>(NewController);
+	CachedPlayerController = Cast<AMyPlayerController>(PlayerController);
 
 	if (PlayerHealthComponent)
 	{

@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "Engine/Texture2D.h"
-#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "ItemDataAsset.generated.h"
 
 /**
@@ -14,7 +14,7 @@
 
 /* Declare ENUM */
 
-UENUM()
+UENUM(BlueprintType)
 enum class EItemRarity : uint8
 {
 	Common UMETA(DisplayName = "Common"),
@@ -23,7 +23,7 @@ enum class EItemRarity : uint8
 	Legendary UMETA(DisplayName = "Legendary")
 };
 
-UENUM()
+UENUM(BlueprintType)
 enum class EItemType : uint8
 {
 	Herb UMETA(DisplayName = "Herb"),
@@ -39,16 +39,16 @@ struct FItemTextData
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FText Name;
+	FText Name = FText::GetEmpty();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FText Description;
+	FText Description = FText::GetEmpty();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FText InteractionText;
+	FText InteractionText = FText::GetEmpty();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FText UsageText;
+	FText UsageText = FText::GetEmpty();
 };
 
 USTRUCT(BlueprintType)
@@ -57,13 +57,13 @@ struct FItemNumericData
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float Weight;
+	float Weight = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	int32 MaxStackSize;
+	int32 MaxStackSize = 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	bool bIsStackable;
+	bool bIsStackable = false;
 };
 
 USTRUCT(BlueprintType)
@@ -72,10 +72,10 @@ struct FItemDataAsset
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	UTexture2D* Icon;
+	TObjectPtr<UTexture2D> Icon = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	UStaticMesh* Mesh;
+	TObjectPtr<UStaticMesh> Mesh = nullptr;
 };
 
 
@@ -85,13 +85,13 @@ struct FItemData : public FTableRowBase
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
-	FName ItemID;
+	FName ItemID = NAME_None;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
-	EItemType ItemType;
+	EItemType ItemType = EItemType::Consumable;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
-	EItemRarity ItemRarity;
+	EItemRarity ItemRarity = EItemRarity::Common;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
 	FItemTextData TextData;
