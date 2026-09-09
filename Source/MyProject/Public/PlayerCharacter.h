@@ -13,9 +13,9 @@ struct FInputActionValue;
 
 class AMyPlayerController;
 class UWidgetComponent;
-class AItemPickup;
 class UHealthComponent;
 class UInventoryComponent;
+class UInteractionInterface;
 
 UCLASS()
 class MYPROJECT_API APlayerCharacter : public ACharacter
@@ -89,7 +89,7 @@ protected:
 
 private:
 	/* Cache */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(Transient)
 	AMyPlayerController* CachedPlayerController;
 
 	/* Camera Components */
@@ -196,10 +196,10 @@ private:
 	
 	/* Item Pickup */
 
-	UPROPERTY(VisibleAnywhere, Category = "Item Pickup")
-	AItemPickup* CurrentTargetPickup;
+	UPROPERTY(VisibleAnywhere, Category = "Interaction")
+	AActor* CurrentTargetInteraction;
 
-	UPROPERTY(EditAnywhere, Category = "Item Pickup")
+	UPROPERTY(EditAnywhere, Category = "Interaction")
 	float InteractionTraceDistance = 600.0f;
 
 public:

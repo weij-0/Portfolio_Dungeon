@@ -20,14 +20,67 @@ AItemPickup::AItemPickup()
 
 	ItemMesh->SetSimulatePhysics(true);
 
-
 	/* Widget Component */
 	InteractPromptWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractPromptWidgetComponent"));
 	InteractPromptWidgetComponent->SetupAttachment(RootComponent);
-
 	InteractPromptWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
-	InteractPromptWidgetComponent->AddRelativeRotation(FRotator(0.0f, 0.0f, 55.0f));
+	//InteractPromptWidgetComponent->AddRelativeRotation(FRotator(0.0f, 0.0f, 55.0f));
 	InteractPromptWidgetComponent->SetVisibility(false);
+}
+
+void AItemPickup::ShowInteractionPrompt_Implementation()
+{
+	if (InteractPromptWidgetComponent)
+	{
+		InteractPromptWidgetComponent->SetVisibility(true);
+	}
+}
+
+void AItemPickup::HideInteractionPrompt_Implementation()
+{
+	if (InteractPromptWidgetComponent)
+	{
+		InteractPromptWidgetComponent->SetVisibility(false);
+	}
+}
+
+void AItemPickup::Interact_Implementation(APlayerCharacter* Character)
+{
+	if (Character && ItemInstance)
+	{
+		UInventoryComponent* CharacterInventory = Character->FindComponentByClass<UInventoryComponent>();
+
+		if (CharacterInventory)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, TEXT("Pickup: Found Inventory Component! Sending item..."));
+
+			UItemBase* ItemCopy = ItemInstance->CreateItemCopy();
+
+			if (CharacterInventory->AddItem(ItemCopy))
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Pickup: AddItem returned TRUE! Destroying actor."));
+				Destroy();
+			}
+			else
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, TEXT("Inventory is full!"));
+				if (ItemCopy)
+				{
+					ItemCopy->MarkAsGarbage();
+				}
+			}
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Pickup Error: Character does NOT have a UInventoryComponent attached!"));
+		}
+	}
+}
+
+/* Item Pickup that spawned by events (Invisible in world at first) */
+void AItemPickup::InitializePickup(const UDataTable* ItemDataTable, FName NewItemID)
+{
+	ProcessDataInitialization(ItemDataTable, NewItemID);
 }
 
 // Called when the game starts or when spawned
@@ -40,13 +93,6 @@ void AItemPickup::BeginPlay()
 	{
 		ProcessDataInitialization(ItemRowHandle.DataTable, ItemRowHandle.RowName);
 	}
-	
-}
-
-/* Item Pickup that spawned by events (Invisible in world at first) */
-void AItemPickup::InitializePickup(const UDataTable* ItemDataTable, FName NewItemID)
-{
-	ProcessDataInitialization(ItemDataTable, NewItemID);
 }
 
 void AItemPickup::ProcessDataInitialization(const UDataTable* ItemDataTable, FName NewItemID)
@@ -99,39 +145,5 @@ void AItemPickup::ProcessDataInitialization(const UDataTable* ItemDataTable, FNa
 				}
 			}
 		}
-	}
-
-	
-}
-
-void AItemPickup::TriggerPickup(APlayerCharacter* Character)
-{
-	if (Character && ItemInstance)
-	{
-		
-		UInventoryComponent* CharacterInventory = Character->FindComponentByClass<UInventoryComponent>();
-
-		if (CharacterInventory)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, TEXT("Pickup: Found Inventory Component! Sending item..."));
-
-			UItemBase* ItemCopy = ItemInstance->CreateItemCopy();
-
-			if (CharacterInventory->AddItem(ItemCopy))
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Pickup: AddItem returned TRUE! Destroying actor."));
-				Destroy();
-			}
-			else
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, TEXT("Inventory is full!"));
-				ItemCopy->MarkAsGarbage();
-			}
-		}
-		else
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Pickup Error: Character does NOT have a UInventoryComponent attached!"));
-		}
-		
-	}
+	}	
 }

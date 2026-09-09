@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Engine/DataTable.h"
+#include "InteractionInterface.h"
 #include "ItemPickup.generated.h"
 
 class UStaticMeshComponent;
@@ -14,7 +15,7 @@ class UWidgetComponent;
 class UDataTable;
 
 UCLASS()
-class MYPROJECT_API AItemPickup : public AActor
+class MYPROJECT_API AItemPickup : public AActor, public IInteractionInterface
 {
 	GENERATED_BODY()
 	
@@ -23,13 +24,12 @@ public:
 	// Sets default values for this actor's properties
 	AItemPickup();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	/* Interaction Interface */
+	virtual void ShowInteractionPrompt_Implementation() override;
+	virtual void HideInteractionPrompt_Implementation() override;
+	virtual void Interact_Implementation(APlayerCharacter* Character) override;
 
-public:
-
-	/* Properties */
+	/* Components & Properties */
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Pickup")
 	FDataTableRowHandle ItemRowHandle;
@@ -42,11 +42,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Item Pickup")
 	void InitializePickup(const UDataTable* ItemDataTable, FName NewItemID);
 
-	
-	UFUNCTION(BlueprintCallable, Category = "Item Pickup")
-	void TriggerPickup(APlayerCharacter* Character);
-
 protected:
+
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
 	/* Properties */
 

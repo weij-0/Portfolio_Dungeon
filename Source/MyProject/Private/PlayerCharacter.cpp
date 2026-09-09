@@ -16,6 +16,7 @@
 #include "ItemPickup.h"
 #include "HealthComponent.h"
 #include "InventoryComponent.h"
+#include "InteractionInterface.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -50,7 +51,7 @@ APlayerCharacter::APlayerCharacter()
 
 	/* Stamina Widget Component */
 	StaminaWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("StaminaWidgetComponent"));
-	StaminaWidgetComponent->SetupAttachment(GetMesh(),FName("pelvis"));
+	StaminaWidgetComponent->SetupAttachment(GetMesh(), FName("pelvis"));
 	StaminaWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	StaminaWidgetComponent->SetDrawAtDesiredSize(true);
 	StaminaWidgetComponent->SetVisibility(false);
@@ -82,6 +83,7 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	UpdateHUDStamina();
 }
 
 // Cache Controller
@@ -103,6 +105,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// Perform Line Trace every frame to detect Interactable Actors
 	PerformInteractionTrace();
 
 	if (bIsSprint && CurrentStamina > 0.0f)
@@ -146,7 +149,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &APlayerCharacter::CrouchStarted);
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &APlayerCharacter::CrouchCompleted);
 
-		// Interact (E)
+		// Interact (F)
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &APlayerCharacter::InteractButtonItemPickup);
 
 		// Inventory (I)
@@ -198,7 +201,6 @@ void APlayerCharacter::SprintStarted(const FInputActionValue& Value)
 		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 		GetWorldTimerManager().ClearTimer(StaminaRegenDelayTimerHandle);
 	}
-	
 }
 
 void APlayerCharacter::SprintCompleted(const FInputActionValue& Value)
@@ -263,16 +265,13 @@ void APlayerCharacter::JumpOrDash(const FInputActionValue& Value)
 	}
 }
 
-// Interact Action (E)
+// Interact Action (F)
 void APlayerCharacter::InteractButtonItemPickup(const FInputActionValue& Value)
 {
-	if (CurrentTargetPickup)
+	if (CurrentTargetInteraction && CurrentTargetInteraction->Implements<UInteractionInterface>())
 	{
-		// Trigger the pickup logic in ItemPickup.cpp
-		CurrentTargetPickup->TriggerPickup(this);
-
-		//Clear pointer after pickup to avoid multiple trigger
-		CurrentTargetPickup = nullptr;
+		// Trigger the interaction logic in the interacting actor
+		IInteractionInterface::Execute_Interact(CurrentTargetInteraction, this);
 	}
 }
 
@@ -315,7 +314,7 @@ void APlayerCharacter::HideStaminaWidget()
 
 void APlayerCharacter::UpdateHUDMana()
 {
-	if (CachedPlayerController && CachedPlayerController->GetHUD())
+	if (CachedPlayerController && CachedPlayerController->HUDWidget)
 	{
 		float NewPercent = FMath::Clamp(CurrentMana / MaxMana, 0.0f, 1.0f);
 
@@ -329,6 +328,11 @@ void APlayerCharacter::UpdateHUDStamina()
 
 	if (StaminaWidgetComponent)
 	{
+		if (!StaminaWidgetComponent->GetUserWidgetObject())
+		{
+			StaminaWidgetComponent->InitWidget();
+		}
+
 		UStaminaWidget* StaminaWidget = Cast<UStaminaWidget>(StaminaWidgetComponent->GetUserWidgetObject());
 		
 		if (StaminaWidget)
@@ -367,63 +371,46 @@ void APlayerCharacter::PerformInteractionTrace()
 
 		if (GetWorld()->LineTraceSingleByChannel(HitResult, StartPoint, EndPoint, ECC_Visibility, TraceParams))
 		{
-			AItemPickup* HitPickup = Cast<AItemPickup>(HitResult.GetActor());
+			AActor* HitActor = HitResult.GetActor();
 
-			if (HitPickup)
+			if (HitActor && HitActor->Implements<UInteractionInterface>())
 			{
-				if (HitPickup != CurrentTargetPickup)
+				if (HitActor != CurrentTargetInteraction)
 				{
-					if (CurrentTargetPickup && CurrentTargetPickup->InteractPromptWidgetComponent)
+					// Hide UI prompt on old target
+					if (CurrentTargetInteraction && CurrentTargetInteraction->Implements<UInteractionInterface>())
 					{
-						CurrentTargetPickup->InteractPromptWidgetComponent->SetVisibility(false);
-
-						if (CachedPlayerController && CachedPlayerController->HUDWidget)
-						{
-							CachedPlayerController->HUDWidget->SetCrosshairVisibility(false);
-						}
+						IInteractionInterface::Execute_HideInteractionPrompt(CurrentTargetInteraction);
 					}
 
-					CurrentTargetPickup = HitPickup;
+					CurrentTargetInteraction = HitActor;
 
-					if (CurrentTargetPickup->InteractPromptWidgetComponent)
-					{
-						CurrentTargetPickup->InteractPromptWidgetComponent->SetVisibility(true);
-
-						if (CachedPlayerController && CachedPlayerController->HUDWidget)
-						{
-							CachedPlayerController->HUDWidget->SetCrosshairVisibility(true);
-						}
-					}
-				}
-			}
-			else // If HitPickup is null
-			{
-				if (CurrentTargetPickup && CurrentTargetPickup->InteractPromptWidgetComponent)
-				{
-					CurrentTargetPickup->InteractPromptWidgetComponent->SetVisibility(false);
+					// Show UI prompt on new target
+					IInteractionInterface::Execute_ShowInteractionPrompt(CurrentTargetInteraction);
 
 					if (CachedPlayerController && CachedPlayerController->HUDWidget)
 					{
-						CachedPlayerController->HUDWidget->SetCrosshairVisibility(false);
+						CachedPlayerController->HUDWidget->SetCrosshairVisibility(true);
 					}
 				}
-
-				CurrentTargetPickup = nullptr;
+				return;
 			}
 		}
-		else // If LineTrace didn't hit anything
+		// If LineTrace didn't hit anything
+		if (CurrentTargetInteraction) 
 		{
-			if (CurrentTargetPickup && CurrentTargetPickup->InteractPromptWidgetComponent)
+			// Hide previous visible UI prompt
+			if (CurrentTargetInteraction && CurrentTargetInteraction->Implements<UInteractionInterface>())
 			{
-				CurrentTargetPickup->InteractPromptWidgetComponent->SetVisibility(false);
-
-				if (CachedPlayerController && CachedPlayerController->HUDWidget)
-				{
-					CachedPlayerController->HUDWidget->SetCrosshairVisibility(false);
-				}
+				IInteractionInterface::Execute_HideInteractionPrompt(CurrentTargetInteraction);
 			}
 
-			CurrentTargetPickup = nullptr;
+			CurrentTargetInteraction = nullptr;
+
+			if (CachedPlayerController && CachedPlayerController->HUDWidget)
+			{
+				CachedPlayerController->HUDWidget->SetCrosshairVisibility(false);
+			}
 		}
 	}
 }
