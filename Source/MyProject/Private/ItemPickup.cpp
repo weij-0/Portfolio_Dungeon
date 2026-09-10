@@ -6,6 +6,7 @@
 #include "InventoryComponent.h"
 #include "PlayerCharacter.h"
 #include "Components/WidgetComponent.h"
+#include "InteractionWidget.h"
 
 // Sets default values
 AItemPickup::AItemPickup()
@@ -24,7 +25,6 @@ AItemPickup::AItemPickup()
 	InteractPromptWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractPromptWidgetComponent"));
 	InteractPromptWidgetComponent->SetupAttachment(RootComponent);
 	InteractPromptWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
-	//InteractPromptWidgetComponent->AddRelativeRotation(FRotator(0.0f, 0.0f, 55.0f));
 	InteractPromptWidgetComponent->SetVisibility(false);
 }
 
@@ -77,10 +77,38 @@ void AItemPickup::Interact_Implementation(APlayerCharacter* Character)
 	}
 }
 
+FInteractionData AItemPickup::GetInteractionData_Implementation() const
+{
+	FInteractionData Data;
+
+	if (ItemInstance)
+	{
+		Data.InteractionText = ItemInstance->TextData.InteractionText;
+		Data.DisplayName = ItemInstance->TextData.Name;
+	}
+
+	Data.InputAction = InteractionAction;
+
+	return Data;
+}
+
 /* Item Pickup that spawned by events (Invisible in world at first) */
 void AItemPickup::InitializePickup(const UDataTable* ItemDataTable, FName NewItemID)
 {
 	ProcessDataInitialization(ItemDataTable, NewItemID);
+}
+
+void AItemPickup::InitializeInteractionWidget()
+{
+	if (InteractPromptWidgetComponent)
+	{
+		UInteractionWidget* InteractionWidget = Cast<UInteractionWidget>(InteractPromptWidgetComponent->GetUserWidgetObject());
+		
+		if (InteractionWidget)
+		{
+			InteractionWidget->SetInteractionData(GetInteractionData_Implementation());
+		}
+	}
 }
 
 // Called when the game starts or when spawned
@@ -93,6 +121,8 @@ void AItemPickup::BeginPlay()
 	{
 		ProcessDataInitialization(ItemRowHandle.DataTable, ItemRowHandle.RowName);
 	}
+
+	InitializeInteractionWidget();
 }
 
 void AItemPickup::ProcessDataInitialization(const UDataTable* ItemDataTable, FName NewItemID)
@@ -134,15 +164,14 @@ void AItemPickup::ProcessDataInitialization(const UDataTable* ItemDataTable, FNa
 					ItemMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 					ItemMesh->RecreatePhysicsState();
 					ItemMesh->SetSimulatePhysics(true);
-					if (ItemMesh->IsPhysicsStateCreated()) ItemMesh->WakeAllRigidBodies();
 
-					/* Update Widgets */
-					UFunction* UpdateVisualsFunc = FindFunction(TEXT("UpdateWidgetVisuals"));
-					if (UpdateVisualsFunc)
+					if (ItemMesh->IsPhysicsStateCreated())
 					{
-						ProcessEvent(UpdateVisualsFunc, nullptr);
+						ItemMesh->WakeAllRigidBodies();
 					}
 				}
+
+				InitializeInteractionWidget();
 			}
 		}
 	}	

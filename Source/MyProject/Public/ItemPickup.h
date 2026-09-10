@@ -28,6 +28,7 @@ public:
 	virtual void ShowInteractionPrompt_Implementation() override;
 	virtual void HideInteractionPrompt_Implementation() override;
 	virtual void Interact_Implementation(APlayerCharacter* Character) override;
+	virtual FInteractionData GetInteractionData_Implementation() const override;
 
 	/* Components & Properties */
 
@@ -42,6 +43,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Item Pickup")
 	void InitializePickup(const UDataTable* ItemDataTable, FName NewItemID);
 
+	UFUNCTION(BlueprintCallable, Category = "Item Pickup|Interaction")
+	void InitializeInteractionWidget();
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Pickup|Interaction")
+	TObjectPtr<const UInputAction> InteractionAction = nullptr;
+
 protected:
 
 	// Called when the game starts or when spawned
@@ -54,7 +61,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Pickup")
 	UStaticMeshComponent* ItemMesh;
-	
+
 	/* Functions */
 
 	UFUNCTION(BlueprintCallable, Category = "Item Pickup")
