@@ -17,6 +17,9 @@ AEnemyAIController::AEnemyAIController()
 	SelfSpawnRotator.SelectedKeyName = "SelfSpawnRotator";
 	SelfLocation.SelectedKeyName = "SelfLocation";
 	SelfRotator.SelectedKeyName = "SelfRotator";
+	CurrentHealth.SelectedKeyName = "CurrentHealth";
+	MaxHealth.SelectedKeyName = "MaxHealth";
+
 	// Target
 	TargetActor.SelectedKeyName = "TargetActor";
 	LastSeenTargetLocation.SelectedKeyName = "LastSeenTargetLocation";
@@ -55,7 +58,7 @@ AEnemyAIController::AEnemyAIController()
 	}
 }
 
-void AEnemyAIController::SetSelfSpawnLocation(FVector NewSelfSpawnLocation)
+void AEnemyAIController::SetBBSelfSpawnLocation(FVector NewSelfSpawnLocation)
 {
 	UBlackboardComponent* BB = GetBlackboardComponent();
 
@@ -65,7 +68,7 @@ void AEnemyAIController::SetSelfSpawnLocation(FVector NewSelfSpawnLocation)
 	}
 }
 
-void AEnemyAIController::SetSelfSpawnRotator(FRotator NewSelfSpawnRotator)
+void AEnemyAIController::SetBBSelfSpawnRotator(FRotator NewSelfSpawnRotator)
 {
 	UBlackboardComponent* BB = GetBlackboardComponent();
 
@@ -75,7 +78,7 @@ void AEnemyAIController::SetSelfSpawnRotator(FRotator NewSelfSpawnRotator)
 	}
 }
 
-void AEnemyAIController::SetSelfLocation(FVector NewSelfLocation)
+void AEnemyAIController::SetBBSelfLocation(FVector NewSelfLocation)
 {
 	UBlackboardComponent* BB = GetBlackboardComponent();
 
@@ -85,7 +88,7 @@ void AEnemyAIController::SetSelfLocation(FVector NewSelfLocation)
 	}
 }
 
-void AEnemyAIController::SetSelfRotator(FRotator NewSelfRotator)
+void AEnemyAIController::SetBBSelfRotator(FRotator NewSelfRotator)
 {
 	UBlackboardComponent* BB = GetBlackboardComponent();
 
@@ -95,7 +98,27 @@ void AEnemyAIController::SetSelfRotator(FRotator NewSelfRotator)
 	}
 }
 
-void AEnemyAIController::SetTargetActor(AActor* NewTargetActor)
+void AEnemyAIController::SetBBCurrentHealth(float NewCurrentHealth)
+{
+	UBlackboardComponent* BB = GetBlackboardComponent();
+
+	if (BB)
+	{
+		BB->SetValueAsFloat(CurrentHealth.SelectedKeyName, NewCurrentHealth);
+	}
+}
+
+void AEnemyAIController::SetBBMaxHealth(float NewMaxHealth)
+{
+	UBlackboardComponent* BB = GetBlackboardComponent();
+
+	if (BB)
+	{
+		BB->SetValueAsFloat(MaxHealth.SelectedKeyName, NewMaxHealth);
+	}
+}
+
+void AEnemyAIController::SetBBTargetActor(AActor* NewTargetActor)
 {
 	UBlackboardComponent* BB = GetBlackboardComponent();
 
@@ -105,7 +128,7 @@ void AEnemyAIController::SetTargetActor(AActor* NewTargetActor)
 	}
 }
 
-void AEnemyAIController::SetLastSeenTargetLocation(FVector NewLastSeenTargetLocation)
+void AEnemyAIController::SetBBLastSeenTargetLocation(FVector NewLastSeenTargetLocation)
 {
 	UBlackboardComponent* BB = GetBlackboardComponent();
 
@@ -115,7 +138,7 @@ void AEnemyAIController::SetLastSeenTargetLocation(FVector NewLastSeenTargetLoca
 	}
 }
 
-void AEnemyAIController::SetIsAlerted(bool bIsAlerted)
+void AEnemyAIController::SetBBIsAlerted(bool bIsAlerted)
 {
 	UBlackboardComponent* BB = GetBlackboardComponent();
 
@@ -125,7 +148,7 @@ void AEnemyAIController::SetIsAlerted(bool bIsAlerted)
 	}
 }
 
-void AEnemyAIController::SetIsAttackRange(bool bIsAttackRange)
+void AEnemyAIController::SetBBIsAttackRange(bool bIsAttackRange)
 {
 	UBlackboardComponent* BB = GetBlackboardComponent();
 
@@ -179,14 +202,16 @@ void AEnemyAIController::OnPossess(APawn* InPawn)
 				SelfSpawnRotator.ResolveSelectedKey(*BB->GetBlackboardAsset());
 				SelfLocation.ResolveSelectedKey(*BB->GetBlackboardAsset());
 				SelfRotator.ResolveSelectedKey(*BB->GetBlackboardAsset());
+				CurrentHealth.ResolveSelectedKey(*BB->GetBlackboardAsset());
+				MaxHealth.ResolveSelectedKey(*BB->GetBlackboardAsset());
 				TargetActor.ResolveSelectedKey(*BB->GetBlackboardAsset());
 				LastSeenTargetLocation.ResolveSelectedKey(*BB->GetBlackboardAsset());
 				IsAlerted.ResolveSelectedKey(*BB->GetBlackboardAsset());
 				IsAttackRange.ResolveSelectedKey(*BB->GetBlackboardAsset());
 
 				/* Initialize blackboard values */
-				SetSelfSpawnLocation(InPawn->GetActorLocation());
-				SetSelfSpawnRotator(InPawn->GetActorRotation());
+				SetBBSelfSpawnLocation(InPawn->GetActorLocation());
+				SetBBSelfSpawnRotator(InPawn->GetActorRotation());
 			}
 		}
 		else 
@@ -214,8 +239,8 @@ void AEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus St
 				);
 			}
 			// Found target - Set target
-			SetTargetActor(Actor);
-			SetLastSeenTargetLocation(Actor->GetActorLocation());
+			SetBBTargetActor(Actor);
+			SetBBLastSeenTargetLocation(Actor->GetActorLocation());
 		}
 		else
 		{
@@ -227,7 +252,7 @@ void AEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus St
 				);
 			}
 			// Lost of sight - Clear target
-			SetTargetActor(nullptr);
+			SetBBTargetActor(nullptr);
 		}
 	}
 }

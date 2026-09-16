@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "BehaviorTree/BehaviorTreeTypes.h"
 #include "EnemyCharacter.generated.h"
 
 class UHealthComponent;
@@ -25,9 +26,25 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+
+	/* Properties */
+
 	// Each subclass will set its own specific BT asset in its constructor or Details panel
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	TObjectPtr<UBehaviorTree> BehaviorTreeAsset = nullptr;
+
+
+	/* Functions */
+
+	// Called by the AnimNotify at the impact frame
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void ExecuteMeleeHit(FName SocketName, float Damage, float Radius);
+
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void ExecuteMeleeTrace(FName BaseSocketName, FName TipSocketName, float Damage, float Radius);
+
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void ClearHitIgnoreList();
 
 	/* Setter & Getter */
 	FORCEINLINE AEnemyAIController* GetEnemyAIController() const { return CachedEnemyAIController; }
@@ -38,7 +55,15 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
 
-	// Health Component
+	/* Event Handlers */
+	// HealthComponent broadcast
+	UFUNCTION()
+	void HandleOnHealthChanged(float Percent, float CurrentHealth, float MaxHealth);
+
+	UFUNCTION()
+	void HandleOnDeath(AController* InstigatedBy);
+
+	/* Health Components & Properties */ 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
 	TObjectPtr<UHealthComponent> HealthComponent = nullptr;
 
@@ -47,6 +72,14 @@ private:
 	/* Cache */
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<AEnemyAIController> CachedEnemyAIController = nullptr;
+
+	// Trace Hit Ignore List
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	TArray<AActor*> HitIgnoreList;
+
+	FVector LastBaseLocation;
+	FVector LastTipLocation;
+	bool bHasLastLocation = false;
 
 	// Health
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Health", meta = (AllowPrivateAccess = "true"))

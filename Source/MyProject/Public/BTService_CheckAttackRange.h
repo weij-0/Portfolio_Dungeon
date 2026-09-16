@@ -19,12 +19,12 @@ public:
 	UBTService_CheckAttackRange();
 
 protected:
-
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
-	/** Attack range threshold. Designers can tweak this directly on the node in the BT graph! */
+	/* Properties*/
+	// Attack range threshold. Designers can tweak this directly on the node in the BT graph.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (ClampMin = "0.0", UIMin = "0.0"))
-	float AttackRange = 150.0f;
+	float AttackRange = 100.0f;
 
 	UPROPERTY(EditAnywhere, Category = "AI")
 	FBlackboardKeySelector TargetActor;
@@ -32,5 +32,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "AI")
 	FBlackboardKeySelector IsAttackRange;
 
-	
+	UPROPERTY(EditAnywhere, Category = "AI")
+	FBlackboardKeySelector EnemyDistanceToTarget;
 };

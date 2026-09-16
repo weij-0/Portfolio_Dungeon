@@ -5,7 +5,7 @@
 #include "PlayerCharacter.h"
 #include "HealthComponent.h"
 
-void UPlayerHUDWidget::UpdateHealthBar(float Percent)
+void UPlayerHUDWidget::UpdateHealthBar(float Percent, float CurrentHealth, float MaxHealth)
 {
 	if (HealthBar)
 	{
@@ -38,7 +38,7 @@ void UPlayerHUDWidget::NativeConstruct()
 
 			/* Initialization */
 
-			UpdateHealthBar(HealthComp->GetCurrentHealthPercent());
+			UpdateHealthBar(HealthComp->GetCurrentHealthPercent(), HealthComp->GetCurrentHealth(), HealthComp->GetMaxHealth());
 		}
 	}
 }

@@ -31,7 +31,7 @@ void UHealthComponent::InitializeHealth(float InitMaxHealth, float InitCurrentHe
 	MaxHealth = InitMaxHealth;
 	CurrentHealth = FMath::Clamp(InitCurrentHealth, 0.0f, MaxHealth);
 
-	OnHealthChanged.Broadcast(GetCurrentHealthPercent());
+	OnHealthChanged.Broadcast(GetCurrentHealthPercent(), GetCurrentHealth(), GetMaxHealth());
 }
 
 void UHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
@@ -45,7 +45,7 @@ void UHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage, c
 
 		float Percent = (CurrentHealth > 0.0f) ? CurrentHealth / MaxHealth : 0.0f;
 
-		OnHealthChanged.Broadcast(Percent);
+		OnHealthChanged.Broadcast(Percent, CurrentHealth, MaxHealth);
 
 		if (CurrentHealth <= 0.0f)
 		{

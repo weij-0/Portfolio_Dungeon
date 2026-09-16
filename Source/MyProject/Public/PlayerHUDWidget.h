@@ -18,7 +18,7 @@ class MYPROJECT_API UPlayerHUDWidget : public UUserWidget
 	
 public:
 	UFUNCTION(BlueprintCallable, Category = "HUD")
-	void UpdateHealthBar(float Percent);
+	void UpdateHealthBar(float Percent, float CurrentHealth, float MaxHealth);
 
 	UFUNCTION(BlueprintCallable, Category = "HUD")
 	void UpdateManaBar(float Percent);

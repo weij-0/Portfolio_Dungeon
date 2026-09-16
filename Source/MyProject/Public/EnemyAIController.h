@@ -27,30 +27,36 @@ public:
 	/* Setter & Getter */
 	// Self
 	UFUNCTION(BlueprintCallable, Category = "AI|BlackBoard")
-	void SetSelfSpawnLocation(FVector NewSelfSpawnLocation);
+	void SetBBSelfSpawnLocation(FVector NewSelfSpawnLocation);
 
 	UFUNCTION(BlueprintAuthorityOnly, Category = "AI|BlackBoard")
-	void SetSelfSpawnRotator(FRotator NewSelfSpawnRotator);
+	void SetBBSelfSpawnRotator(FRotator NewSelfSpawnRotator);
 
 	UFUNCTION(BlueprintCallable, Category = "AI|BlackBoard")
-	void SetSelfLocation(FVector NewSelfLocation);
+	void SetBBSelfLocation(FVector NewSelfLocation);
 
 	UFUNCTION(BlueprintAuthorityOnly, Category = "AI|BlackBoard")
-	void SetSelfRotator(FRotator NewSelfRotator);
+	void SetBBSelfRotator(FRotator NewSelfRotator);
+
+	UFUNCTION(BlueprintAuthorityOnly, Category = "AI|BlackBoard")
+	void SetBBCurrentHealth(float NewCurrentHealth);
+
+	UFUNCTION(BlueprintAuthorityOnly, Category = "AI|BlackBoard")
+	void SetBBMaxHealth(float NewMaxHealth);
 
 	// Target
 	UFUNCTION(BlueprintCallable, Category = "AI|BlackBoard")
-	void SetTargetActor(AActor* NewTargetActor);
+	void SetBBTargetActor(AActor* NewTargetActor);
 
 	UFUNCTION(BlueprintCallable, Category = "AI|BlackBoard")
-	void SetLastSeenTargetLocation(FVector NewLastSeenTargetLocation);
+	void SetBBLastSeenTargetLocation(FVector NewLastSeenTargetLocation);
 
 	// Flags
 	UFUNCTION(BlueprintCallable, Category = "AI|BlackBoard")
-	void SetIsAlerted(bool bIsAlerted);
+	void SetBBIsAlerted(bool bIsAlerted);
 
 	UFUNCTION(BlueprintCallable, Category = "AI|BlackBoard")
-	void SetIsAttackRange(bool bIsAttackRange);
+	void SetBBIsAttackRange(bool bIsAttackRange);
 
 	
 
@@ -84,6 +90,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI|BlackBoard")
 	FBlackboardKeySelector SelfRotator;
+
+	UPROPERTY(EditDefaultsOnly, Category = "AI|BlackBoard")
+	FBlackboardKeySelector CurrentHealth;
+
+	UPROPERTY(EditDefaultsOnly, Category = "AI|BlackBoard")
+	FBlackboardKeySelector MaxHealth;
 
 	// Target
 	UPROPERTY(EditAnywhere, Category = "AI|BlackBoard")

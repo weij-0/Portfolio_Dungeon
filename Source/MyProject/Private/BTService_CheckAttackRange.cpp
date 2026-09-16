@@ -11,6 +11,7 @@ UBTService_CheckAttackRange::UBTService_CheckAttackRange()
 
 	TargetActor.SelectedKeyName = "TargetActor";
 	IsAttackRange.SelectedKeyName = "IsAttackRange";
+	EnemyDistanceToTarget.SelectedKeyName = "EnemyDistanceToTarget";
 }
 
 void UBTService_CheckAttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -33,6 +34,9 @@ void UBTService_CheckAttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 
 			// Set the blackboard value for IsAttackRange
 			BB->SetValueAsBool(IsAttackRange.SelectedKeyName, bIsInAttackRange);
+			
+			// Set the blackboard value for DistanceToTarget
+			BB->SetValueAsFloat(EnemyDistanceToTarget.SelectedKeyName, DistanceToTarget);
 		}
 	}
 }
