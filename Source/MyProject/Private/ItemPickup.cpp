@@ -52,18 +52,18 @@ void AItemPickup::Interact_Implementation(APlayerCharacter* Character)
 
 		if (CharacterInventory)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, TEXT("Pickup: Found Inventory Component! Sending item..."));
+			//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, TEXT("Pickup: Found Inventory Component! Sending item..."));
 
 			UItemBase* ItemCopy = ItemInstance->CreateItemCopy();
 
 			if (CharacterInventory->AddItem(ItemCopy))
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Pickup: AddItem returned TRUE! Destroying actor."));
+				//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Pickup: AddItem returned TRUE! Destroying actor."));
 				Destroy();
 			}
 			else
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, TEXT("Inventory is full!"));
+				//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, TEXT("Inventory is full!"));
 				if (ItemCopy)
 				{
 					ItemCopy->MarkAsGarbage();
@@ -72,7 +72,7 @@ void AItemPickup::Interact_Implementation(APlayerCharacter* Character)
 		}
 		else
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Pickup Error: Character does NOT have a UInventoryComponent attached!"));
+			//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Pickup Error: Character does NOT have a UInventoryComponent attached!"));
 		}
 	}
 }

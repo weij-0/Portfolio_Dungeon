@@ -12,6 +12,8 @@ class UBehaviorTree;
 class UBlackBoard;
 class UAIPerceptionComponent;
 class UAISenseConfig_Sight;
+class UAISenseConfig_Damage;
+
 /**
  * 
  */
@@ -24,41 +26,20 @@ public:
 
 	AEnemyAIController();
 
+	/* Functions */
 	/* Setter & Getter */
-	// Self
-	UFUNCTION(BlueprintCallable, Category = "AI|BlackBoard")
-	void SetBBSelfSpawnLocation(FVector NewSelfSpawnLocation);
 
-	UFUNCTION(BlueprintAuthorityOnly, Category = "AI|BlackBoard")
-	void SetBBSelfSpawnRotator(FRotator NewSelfSpawnRotator);
+	// Used in EnemyCharacter.cpp
+	void SetBBCurrentHealth(float newCurrentHealth);
+	void SetBBMaxHealth(float newMaxHealth);
+	void SetBBIsPhaseTwo(bool bIsPhaseTwo);
+		
+	// Set Target
+	void ClearTargetActor();
 
-	UFUNCTION(BlueprintCallable, Category = "AI|BlackBoard")
-	void SetBBSelfLocation(FVector NewSelfLocation);
+	// Get TeamID
+	virtual FGenericTeamId GetGenericTeamId() const override { return TeamID; }
 
-	UFUNCTION(BlueprintAuthorityOnly, Category = "AI|BlackBoard")
-	void SetBBSelfRotator(FRotator NewSelfRotator);
-
-	UFUNCTION(BlueprintAuthorityOnly, Category = "AI|BlackBoard")
-	void SetBBCurrentHealth(float NewCurrentHealth);
-
-	UFUNCTION(BlueprintAuthorityOnly, Category = "AI|BlackBoard")
-	void SetBBMaxHealth(float NewMaxHealth);
-
-	// Target
-	UFUNCTION(BlueprintCallable, Category = "AI|BlackBoard")
-	void SetBBTargetActor(AActor* NewTargetActor);
-
-	UFUNCTION(BlueprintCallable, Category = "AI|BlackBoard")
-	void SetBBLastSeenTargetLocation(FVector NewLastSeenTargetLocation);
-
-	// Flags
-	UFUNCTION(BlueprintCallable, Category = "AI|BlackBoard")
-	void SetBBIsAlerted(bool bIsAlerted);
-
-	UFUNCTION(BlueprintCallable, Category = "AI|BlackBoard")
-	void SetBBIsAttackRange(bool bIsAttackRange);
-
-	
 
 protected:
 
@@ -66,9 +47,11 @@ protected:
 
 	virtual void OnPossess(APawn* InPawn) override;
 
+	/* Functions */
+	UFUNCTION()
+	void  OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+
 	/* Components */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|BlackBoard")
-	UBlackboardComponent* CachedBB;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Perception")
 	UAIPerceptionComponent* PerceptionComp;
@@ -76,45 +59,44 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Perception")
 	UAISenseConfig_Sight* SightConfig;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Perception")
+	UAISenseConfig_Damage* DamageConfig;
+
+	/** Set Team ID: 1 for Enemies/Bosses, 0 for Player */
+	FGenericTeamId TeamID = FGenericTeamId(1);
 
 	/* Blackboard Key Name */
 	// Self
 	UPROPERTY(EditDefaultsOnly, Category = "AI|BlackBoard")
-	FBlackboardKeySelector SelfSpawnLocation;
+	FBlackboardKeySelector SelfSpawnLocationKey;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI|BlackBoard")
-	FBlackboardKeySelector SelfSpawnRotator;
+	FBlackboardKeySelector CurrentHealthKey;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI|BlackBoard")
-	FBlackboardKeySelector SelfLocation;
-
-	UPROPERTY(EditDefaultsOnly, Category = "AI|BlackBoard")
-	FBlackboardKeySelector SelfRotator;
-
-	UPROPERTY(EditDefaultsOnly, Category = "AI|BlackBoard")
-	FBlackboardKeySelector CurrentHealth;
-
-	UPROPERTY(EditDefaultsOnly, Category = "AI|BlackBoard")
-	FBlackboardKeySelector MaxHealth;
+	FBlackboardKeySelector MaxHealthKey;
 
 	// Target
 	UPROPERTY(EditAnywhere, Category = "AI|BlackBoard")
-	FBlackboardKeySelector TargetActor;
+	FBlackboardKeySelector TargetActorKey;
 
 	UPROPERTY(EditAnywhere, Category = "AI|BlackBoard")
-	FBlackboardKeySelector LastSeenTargetLocation;
+	FBlackboardKeySelector LastSeenTargetLocationKey;
 
 	// Flags
-	UPROPERTY(EditAnywhere, Category = "AI|BlackBoard")
-	FBlackboardKeySelector IsAlerted;
+	UPROPERTY(EditDefaultsOnly, Category = "AI|Blackboard")
+	FBlackboardKeySelector HasLineOfSightKey;
 
 	UPROPERTY(EditAnywhere, Category = "AI|BlackBoard")
-	FBlackboardKeySelector IsAttackRange;
+	FBlackboardKeySelector IsAttackRangeKey;
 
+	UPROPERTY(EditAnywhere, Category = "AI|BlackBoard")
+	FBlackboardKeySelector IsPhaseTwoKey;
 
-	/* Functions */
-	UFUNCTION()
-	void  OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+	/* Timer */
+	FTimerHandle TargetForgetTimer;
+
+	
 
 
 private:

@@ -3,7 +3,7 @@
 
 #include "AnimNotifyState_MeleeTrace.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "EnemyCharacter.h"
+#include "BaseCharacter.h"
 
 void UAnimNotifyState_MeleeTrace::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {	
@@ -11,11 +11,11 @@ void UAnimNotifyState_MeleeTrace::NotifyBegin(USkeletalMeshComponent* MeshComp, 
 	
 	if (MeshComp && MeshComp->GetOwner())
 	{
-		AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(MeshComp->GetOwner());
+		ABaseCharacter* Character = Cast<ABaseCharacter>(MeshComp->GetOwner());
 		
-		if (Enemy)
+		if (Character)
 		{
-			Enemy->ClearHitIgnoreList();
+			Character->ClearHitIgnoreList();
 		}
 
 	}
@@ -27,11 +27,11 @@ void UAnimNotifyState_MeleeTrace::NotifyTick(USkeletalMeshComponent* MeshComp, U
 	
 	if (MeshComp && MeshComp->GetOwner())
 	{
-		AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(MeshComp->GetOwner());
+		ABaseCharacter* Character = Cast<ABaseCharacter>(MeshComp->GetOwner());
 
-		if (Enemy)
+		if (Character)
 		{
-			Enemy->ExecuteMeleeTrace(BaseSocketName, TipSocketName, Damage, TraceRadius);
+			Character->ExecuteMeleeTrace(BaseSocketName, TipSocketName, Damage, TraceRadius);
 		}
 	}
 }
@@ -42,11 +42,11 @@ void UAnimNotifyState_MeleeTrace::NotifyEnd(USkeletalMeshComponent* MeshComp, UA
 
 	if (MeshComp && MeshComp->GetOwner())
 	{
-		AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(MeshComp->GetOwner());
+		ABaseCharacter* Character = Cast<ABaseCharacter>(MeshComp->GetOwner());
 
-		if (Enemy)
+		if (Character)
 		{
-			Enemy->ClearHitIgnoreList();
+			Character->ClearHitIgnoreList();
 		}
 	}
 }

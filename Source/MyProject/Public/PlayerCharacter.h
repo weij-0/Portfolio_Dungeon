@@ -3,7 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "BaseCharacter.h"
+#include "GenericTeamAgentInterface.h"
 #include "PlayerCharacter.generated.h"
 
 class USpringArmComponent;
@@ -13,12 +14,13 @@ struct FInputActionValue;
 
 class AMyPlayerController;
 class UWidgetComponent;
-class UHealthComponent;
 class UInventoryComponent;
 class UInteractionInterface;
+class UStaticMeshComponent;
+class UAnimMontage;
 
 UCLASS()
-class MYPROJECT_API APlayerCharacter : public ACharacter
+class MYPROJECT_API APlayerCharacter : public ABaseCharacter, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -39,6 +41,9 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	// Team 0 = Player
+	virtual FGenericTeamId GetGenericTeamId() const override { return FGenericTeamId(0); }
 
 protected:
 	/* Input Function Calls */
@@ -67,13 +72,12 @@ protected:
 	// Inventory Input (I)
 	void ToggleInventoryPressed(const FInputActionValue& Value);
 
+	// Attack (LMB)
+	void Attack(const FInputActionValue& Value);
+
 	// Stamina Widget
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	UWidgetComponent* StaminaWidgetComponent;
-
-	// Health Component
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
-	UHealthComponent* PlayerHealthComponent;
 
 	// Inventory Component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
@@ -121,6 +125,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* ToggleInventoryAction;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* AttackAction;
 
 	/* Initialize Settings */
 
@@ -201,6 +207,11 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Interaction")
 	float InteractionTraceDistance = 600.0f;
+
+	/* Animation Montages */
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation|Attack", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAnimMontage> BasicAttack = nullptr;
 
 public:
 

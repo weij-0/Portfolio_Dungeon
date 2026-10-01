@@ -55,7 +55,7 @@ APlayerCharacter::APlayerCharacter()
 	StaminaWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	StaminaWidgetComponent->SetDrawAtDesiredSize(true);
 	StaminaWidgetComponent->SetVisibility(false);
-	
+
 	/* Crouch */
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
 
@@ -70,9 +70,6 @@ APlayerCharacter::APlayerCharacter()
 	
 	/* Stamina */
 	CurrentStamina = MaxStamina;
-
-	/* Health Component */
-	PlayerHealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("PlayerHealthComponent"));
 
 	/* Inventory Component */
 	PlayerInventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("PlayerInventoryComponent"));
@@ -93,10 +90,10 @@ void APlayerCharacter::PossessedBy(AController* PlayerController)
 
 	CachedPlayerController = Cast<AMyPlayerController>(PlayerController);
 
-	if (PlayerHealthComponent)
+	if (HealthComponent)
 	{
 		PlayerCurrentHealth = PlayerMaxHealth;
-		PlayerHealthComponent->InitializeHealth(PlayerMaxHealth, PlayerCurrentHealth);
+		HealthComponent->InitializeHealth(PlayerMaxHealth, PlayerCurrentHealth);
 	}
 }
 
@@ -154,6 +151,10 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 		// Inventory (I)
 		EnhancedInputComponent->BindAction(ToggleInventoryAction, ETriggerEvent::Started, this, &APlayerCharacter::ToggleInventoryPressed);
+
+		// Attack (LMB)
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &APlayerCharacter::Attack);
+
 	}
 }
 
@@ -280,6 +281,25 @@ void APlayerCharacter::ToggleInventoryPressed(const FInputActionValue& Value)
 {
 	// Fires the Event up to Blueprints
 	OnToggleInventoryEvent();
+}
+
+void APlayerCharacter::Attack(const FInputActionValue& Value)
+{
+	if (!BasicAttack)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Attack Failed: 'BasicAttack' Montage property is NULL! Assign it in BP details."));
+		return;
+	}
+
+	if (!GetMesh() || !GetMesh()->GetAnimInstance())
+	{
+		UE_LOG(LogTemp, Error, TEXT("Attack Failed: Mesh or AnimInstance is missing on character!"));
+		return;
+	}
+
+	float Duration = PlayAnimMontage(BasicAttack);
+	UE_LOG(LogTemp, Warning, TEXT("PlayAnimMontage Executed. Returned Duration: %f seconds"), Duration);
+
 }
 
 // Stamina

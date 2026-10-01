@@ -80,12 +80,12 @@ bool ALock::ProcessLockCheckInventory(AActor* ActorToCheck)
 
 			//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Damage: %f"), DamageDealt));
 
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("KeyItemID: %s"), *KeyItemID.ToString()));
+			//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("KeyItemID: %s"), *KeyItemID.ToString()));
 			
 			if (KeyItemInstance && InventoryComp->HasQuestItem(KeyItemInstance, KeyItemQty))
 			{
 				
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("KeyItemInstance: %s"), *KeyItemInstance->ItemID.ToString()));
+				//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("KeyItemInstance: %s"), *KeyItemInstance->ItemID.ToString()));
 
 				SetIsKeyPlaced(true);
 

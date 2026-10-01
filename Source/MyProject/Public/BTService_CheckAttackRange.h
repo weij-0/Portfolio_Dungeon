@@ -19,6 +19,7 @@ public:
 	UBTService_CheckAttackRange();
 
 protected:
+
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
 	/* Properties*/
@@ -27,11 +28,17 @@ protected:
 	float AttackRange = 100.0f;
 
 	UPROPERTY(EditAnywhere, Category = "AI")
-	FBlackboardKeySelector TargetActor;
+	FBlackboardKeySelector TargetActorKey;
 
 	UPROPERTY(EditAnywhere, Category = "AI")
-	FBlackboardKeySelector IsAttackRange;
+	FBlackboardKeySelector IsAttackRangeKey;
 
 	UPROPERTY(EditAnywhere, Category = "AI")
-	FBlackboardKeySelector EnemyDistanceToTarget;
+	FBlackboardKeySelector CurrentAttackRangeKey;
+
+	UPROPERTY(EditAnywhere, Category = "AI")
+	FBlackboardKeySelector EnemyDistanceToTargetKey;
+
+private:
+
 };

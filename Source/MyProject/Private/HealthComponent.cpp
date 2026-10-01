@@ -37,21 +37,24 @@ void UHealthComponent::InitializeHealth(float InitMaxHealth, float InitCurrentHe
 void UHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
 
-	if (Damage <= 0.0f || CurrentHealth <= 0.0f) {
-	}
-	else if(Damage > 0.0f && CurrentHealth > 0.0f)
+	if (Damage <= 0.0f || CurrentHealth <= 0.0f) 
 	{
-		CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
-
-		float Percent = (CurrentHealth > 0.0f) ? CurrentHealth / MaxHealth : 0.0f;
-
-		OnHealthChanged.Broadcast(Percent, CurrentHealth, MaxHealth);
-
-		if (CurrentHealth <= 0.0f)
-		{
-			OnDeath.Broadcast(InstigatedBy);
-		}
+		return;
 	}
+		
+	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
+		
+	OnHealthChanged.Broadcast(GetCurrentHealthPercent(), GetCurrentHealth(), GetMaxHealth());
 
+	if (CurrentHealth <= 0.0f)
+	{
+		// If dead
+		OnDeath.Broadcast(DamagedActor, InstigatedBy);
+	}
+	else
+	{
+		// Else hit react
+		OnHitReact.Broadcast(DamageCauser);
+	}
 }
 

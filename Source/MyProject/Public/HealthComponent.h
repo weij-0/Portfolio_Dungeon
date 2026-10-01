@@ -8,7 +8,8 @@
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnHealthChanged, float, Percent, float, CurrentHealth, float, MaxHealth);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, AController*, InstigatedBy);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHitReact, AActor*, DamageCauser);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDeath, AActor*, DamagedActor, AController*, InstigatedBy);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class MYPROJECT_API UHealthComponent : public UActorComponent
@@ -22,6 +23,9 @@ public:
 	/* Broadcast */
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnHealthChanged OnHealthChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnHitReact OnHitReact;
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnDeath OnDeath;

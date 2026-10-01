@@ -105,7 +105,7 @@ bool UInventoryComponent::RemoveItemByInstance(UItemBase* ItemInstance, const in
 				InventoryItems.RemoveSingleSwap(ItemInstance);
 			}
 
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("Key removed.")));
+			//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("Key removed.")));
 			
 			OnInventoryUpdated.Broadcast();
 			return true;

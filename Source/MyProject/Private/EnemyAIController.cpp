@@ -6,6 +6,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
+#include "Perception/AISenseConfig_Damage.h"
 #include "EnemyCharacter.h"
 
 
@@ -13,152 +14,86 @@ AEnemyAIController::AEnemyAIController()
 {
 	/* Initialize Blackboard Key Names */
 	// Self
-	SelfSpawnLocation.SelectedKeyName = "SelfSpawnLocation";
-	SelfSpawnRotator.SelectedKeyName = "SelfSpawnRotator";
-	SelfLocation.SelectedKeyName = "SelfLocation";
-	SelfRotator.SelectedKeyName = "SelfRotator";
-	CurrentHealth.SelectedKeyName = "CurrentHealth";
-	MaxHealth.SelectedKeyName = "MaxHealth";
+	SelfSpawnLocationKey.SelectedKeyName = "SelfSpawnLocation";
+	CurrentHealthKey.SelectedKeyName = "CurrentHealth";
+	MaxHealthKey.SelectedKeyName = "MaxHealth";
 
 	// Target
-	TargetActor.SelectedKeyName = "TargetActor";
-	LastSeenTargetLocation.SelectedKeyName = "LastSeenTargetLocation";
+	TargetActorKey.SelectedKeyName = "TargetActor";
+	LastSeenTargetLocationKey.SelectedKeyName = "LastSeenTargetLocation";
+
 	// Flags
-	IsAlerted.SelectedKeyName = "IsAlerted";
-	IsAttackRange.SelectedKeyName = "IsAttackRange";
+	HasLineOfSightKey.SelectedKeyName = "HasLineOfSight";
+	IsPhaseTwoKey.SelectedKeyName = "IsPhaseTwo";
 
 	/* Create Perception Components */
 	PerceptionComp = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("PerceptionComp"));
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
-	
-	if (SightConfig)
+	DamageConfig = CreateDefaultSubobject<UAISenseConfig_Damage>(TEXT("DamageConfig"));
+
+	if (PerceptionComp && SightConfig)
 	{
 		SightConfig->SightRadius = 1500.0f;
 		SightConfig->LoseSightRadius = 1600.0f;
-		SightConfig->PeripheralVisionAngleDegrees = 90.0f;
+		SightConfig->PeripheralVisionAngleDegrees = 60.0f;
+		SightConfig->SetMaxAge(5.0f);
 
 		SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 		SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
 		SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
 
-		if (PerceptionComp)
-		{
-			PerceptionComp->ConfigureSense(*SightConfig);
-			PerceptionComp->SetDominantSense(SightConfig->GetSenseImplementation());
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("[%s] PerceptionComp failed to create in Constructor!"), *GetName());
-		}
-		
+		PerceptionComp->ConfigureSense(*SightConfig);
+		PerceptionComp->SetDominantSense(SightConfig->GetSenseImplementation());
 	}
-	else
+
+	if (PerceptionComp && DamageConfig)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[%s] SightConfig failed to create in Constructor!"), *GetName());
+		DamageConfig->SetMaxAge(5.0f);
+		PerceptionComp->ConfigureSense(*DamageConfig);
 	}
+	
 }
 
-void AEnemyAIController::SetBBSelfSpawnLocation(FVector NewSelfSpawnLocation)
+void AEnemyAIController::SetBBCurrentHealth(float newCurrentHealth)
 {
-	UBlackboardComponent* BB = GetBlackboardComponent();
-
-	if (BB)
+	if (UBlackboardComponent* BB = GetBlackboardComponent())
 	{
-		BB->SetValueAsVector(SelfSpawnLocation.SelectedKeyName, NewSelfSpawnLocation);
+		BB->SetValueAsFloat(CurrentHealthKey.SelectedKeyName, newCurrentHealth);
 	}
 }
 
-void AEnemyAIController::SetBBSelfSpawnRotator(FRotator NewSelfSpawnRotator)
+void AEnemyAIController::SetBBMaxHealth(float newMaxHealth)
 {
-	UBlackboardComponent* BB = GetBlackboardComponent();
-
-	if (BB)
+	if (UBlackboardComponent* BB = GetBlackboardComponent())
 	{
-		BB->SetValueAsRotator(SelfSpawnRotator.SelectedKeyName, NewSelfSpawnRotator);
+		BB->SetValueAsFloat(MaxHealthKey.SelectedKeyName, newMaxHealth);
 	}
 }
 
-void AEnemyAIController::SetBBSelfLocation(FVector NewSelfLocation)
+void AEnemyAIController::SetBBIsPhaseTwo(bool bIsPhaseTwo)
 {
-	UBlackboardComponent* BB = GetBlackboardComponent();
-
-	if (BB)
+	if (UBlackboardComponent* BB = GetBlackboardComponent())
 	{
-		BB->SetValueAsVector(SelfLocation.SelectedKeyName, NewSelfLocation);
+		BB->SetValueAsBool(IsPhaseTwoKey.SelectedKeyName, bIsPhaseTwo);
 	}
 }
 
-void AEnemyAIController::SetBBSelfRotator(FRotator NewSelfRotator)
+void AEnemyAIController::ClearTargetActor()
 {
-	UBlackboardComponent* BB = GetBlackboardComponent();
+	// Clear Focus
+	ClearFocus(EAIFocusPriority::Gameplay);
 
-	if (BB)
+	// Clear Timer
+	GetWorld()->GetTimerManager().ClearTimer(TargetForgetTimer);
+
+	// Clear Blackboard values
+	if (UBlackboardComponent* BB = GetBlackboardComponent())
 	{
-		BB->SetValueAsRotator(SelfRotator.SelectedKeyName, NewSelfRotator);
+		BB->ClearValue(TargetActorKey.SelectedKeyName);
+		BB->ClearValue(LastSeenTargetLocationKey.SelectedKeyName);
+		BB->SetValueAsBool(HasLineOfSightKey.SelectedKeyName, false);
 	}
 }
-
-void AEnemyAIController::SetBBCurrentHealth(float NewCurrentHealth)
-{
-	UBlackboardComponent* BB = GetBlackboardComponent();
-
-	if (BB)
-	{
-		BB->SetValueAsFloat(CurrentHealth.SelectedKeyName, NewCurrentHealth);
-	}
-}
-
-void AEnemyAIController::SetBBMaxHealth(float NewMaxHealth)
-{
-	UBlackboardComponent* BB = GetBlackboardComponent();
-
-	if (BB)
-	{
-		BB->SetValueAsFloat(MaxHealth.SelectedKeyName, NewMaxHealth);
-	}
-}
-
-void AEnemyAIController::SetBBTargetActor(AActor* NewTargetActor)
-{
-	UBlackboardComponent* BB = GetBlackboardComponent();
-
-	if (BB)
-	{
-		BB->SetValueAsObject(TargetActor.SelectedKeyName, NewTargetActor);
-	}
-}
-
-void AEnemyAIController::SetBBLastSeenTargetLocation(FVector NewLastSeenTargetLocation)
-{
-	UBlackboardComponent* BB = GetBlackboardComponent();
-
-	if (BB)
-	{
-		BB->SetValueAsVector(LastSeenTargetLocation.SelectedKeyName, NewLastSeenTargetLocation);
-	}
-}
-
-void AEnemyAIController::SetBBIsAlerted(bool bIsAlerted)
-{
-	UBlackboardComponent* BB = GetBlackboardComponent();
-
-	if (BB)
-	{
-		BB->SetValueAsBool(IsAlerted.SelectedKeyName, bIsAlerted);
-	}
-}
-
-void AEnemyAIController::SetBBIsAttackRange(bool bIsAttackRange)
-{
-	UBlackboardComponent* BB = GetBlackboardComponent();
-
-	if (BB)
-	{
-		BB->SetValueAsBool(IsAttackRange.SelectedKeyName, bIsAttackRange);
-	}
-}
-
-
 
 void AEnemyAIController::BeginPlay()
 {
@@ -198,20 +133,16 @@ void AEnemyAIController::OnPossess(APawn* InPawn)
 		{		
 			if (UBlackboardComponent* BB = GetBlackboardComponent())
 			{
-				SelfSpawnLocation.ResolveSelectedKey(*BB->GetBlackboardAsset());
-				SelfSpawnRotator.ResolveSelectedKey(*BB->GetBlackboardAsset());
-				SelfLocation.ResolveSelectedKey(*BB->GetBlackboardAsset());
-				SelfRotator.ResolveSelectedKey(*BB->GetBlackboardAsset());
-				CurrentHealth.ResolveSelectedKey(*BB->GetBlackboardAsset());
-				MaxHealth.ResolveSelectedKey(*BB->GetBlackboardAsset());
-				TargetActor.ResolveSelectedKey(*BB->GetBlackboardAsset());
-				LastSeenTargetLocation.ResolveSelectedKey(*BB->GetBlackboardAsset());
-				IsAlerted.ResolveSelectedKey(*BB->GetBlackboardAsset());
-				IsAttackRange.ResolveSelectedKey(*BB->GetBlackboardAsset());
+				SelfSpawnLocationKey.ResolveSelectedKey(*BB->GetBlackboardAsset());
+				CurrentHealthKey.ResolveSelectedKey(*BB->GetBlackboardAsset());
+				MaxHealthKey.ResolveSelectedKey(*BB->GetBlackboardAsset());
+				TargetActorKey.ResolveSelectedKey(*BB->GetBlackboardAsset());
+				LastSeenTargetLocationKey.ResolveSelectedKey(*BB->GetBlackboardAsset());
+				HasLineOfSightKey.ResolveSelectedKey(*BB->GetBlackboardAsset());
+				IsPhaseTwoKey.ResolveSelectedKey(*BB->GetBlackboardAsset());
 
 				/* Initialize blackboard values */
-				SetBBSelfSpawnLocation(InPawn->GetActorLocation());
-				SetBBSelfSpawnRotator(InPawn->GetActorRotation());
+				BB->SetValueAsVector(SelfSpawnLocationKey.SelectedKeyName, InPawn->GetActorLocation());
 			}
 		}
 		else 
@@ -227,32 +158,62 @@ void AEnemyAIController::OnPossess(APawn* InPawn)
 
 void AEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	if (Actor && Actor->ActorHasTag(FName("Player")))
+	if (!Actor || !Actor->ActorHasTag(FName("Player")))	return;
+
+	UBlackboardComponent* BB = GetBlackboardComponent();
+	if (!BB) return;
+
+											;
+	UE_LOG(LogTemp, Warning, TEXT("[1] Sensed Signal From: %s"), *Actor->GetName());
+
+	/* Case A: Damage Sense (when damage taken) */
+	if (Stimulus.Type == UAISense::GetSenseID<UAISense_Damage>())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[Damage Sensed]"));
+		// Clear Timer (don't forget target)
+		GetWorld()->GetTimerManager().ClearTimer(TargetForgetTimer);
+
+		// Sensed target - Set target
+		BB->SetValueAsBool(HasLineOfSightKey.SelectedKeyName, true);
+		
+		BB->SetValueAsObject(TargetActorKey.SelectedKeyName, Actor);
+		BB->SetValueAsVector(LastSeenTargetLocationKey.SelectedKeyName, Actor->GetActorLocation());
+
+		return;
+	}
+
+	/* Case B: Sight Sense (when see target) */
+	if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Sight Sensed]"));
 		if (Stimulus.WasSuccessfullySensed())
 		{
-			if (GEngine)
-			{
-				GEngine->AddOnScreenDebugMessage(
-					-1, 3.0f, FColor::Green,
-					FString::Printf(TEXT("AI SPOTTED TARGET: %s"), *Actor->GetName())
-				);
-			}
+			// Clear Timer (don't forget target)
+			GetWorld()->GetTimerManager().ClearTimer(TargetForgetTimer);
+
 			// Found target - Set target
-			SetBBTargetActor(Actor);
-			SetBBLastSeenTargetLocation(Actor->GetActorLocation());
+			BB->SetValueAsBool(HasLineOfSightKey.SelectedKeyName, true);
+			
+			BB->SetValueAsObject(TargetActorKey.SelectedKeyName, Actor);
+			BB->SetValueAsVector(LastSeenTargetLocationKey.SelectedKeyName, Actor->GetActorLocation());
 		}
 		else
 		{
-			if (GEngine)
-			{
-				GEngine->AddOnScreenDebugMessage(
-					-1, 3.0f, FColor::Red,
-					TEXT("AI LOST TARGET")
-				);
-			}
+			// Store last seen location before starting timer
+			BB->SetValueAsBool(HasLineOfSightKey.SelectedKeyName, false);
+			
+			BB->SetValueAsVector(LastSeenTargetLocationKey.SelectedKeyName, Stimulus.StimulusLocation);
+
 			// Lost of sight - Clear target
-			SetBBTargetActor(nullptr);
+			GetWorld()->GetTimerManager().SetTimer(
+				TargetForgetTimer,
+				this,
+				&AEnemyAIController::ClearTargetActor,
+				5.0f,
+				false
+			);
 		}
+
+		return;
 	}
 }

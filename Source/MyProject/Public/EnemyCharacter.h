@@ -3,16 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "BaseCharacter.h"
 #include "BehaviorTree/BehaviorTreeTypes.h"
 #include "EnemyCharacter.generated.h"
 
-class UHealthComponent;
 class AEnemyAIController;
 class UBehaviorTree;
 
 UCLASS()
-class MYPROJECT_API AEnemyCharacter : public ACharacter
+class MYPROJECT_API AEnemyCharacter : public ABaseCharacter
 {
 	GENERATED_BODY()
 
@@ -23,9 +22,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
 
 	/* Properties */
 
@@ -35,16 +31,6 @@ public:
 
 
 	/* Functions */
-
-	// Called by the AnimNotify at the impact frame
-	UFUNCTION(BlueprintCallable, Category = "Combat")
-	void ExecuteMeleeHit(FName SocketName, float Damage, float Radius);
-
-	UFUNCTION(BlueprintCallable, Category = "Combat")
-	void ExecuteMeleeTrace(FName BaseSocketName, FName TipSocketName, float Damage, float Radius);
-
-	UFUNCTION(BlueprintCallable, Category = "Combat")
-	void ClearHitIgnoreList();
 
 	/* Setter & Getter */
 	FORCEINLINE AEnemyAIController* GetEnemyAIController() const { return CachedEnemyAIController; }
@@ -61,11 +47,10 @@ protected:
 	void HandleOnHealthChanged(float Percent, float CurrentHealth, float MaxHealth);
 
 	UFUNCTION()
-	void HandleOnDeath(AController* InstigatedBy);
+	void HandleOnDeath(AActor* DamagedActor, AController* InstigatedBy);
 
-	/* Health Components & Properties */ 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
-	TObjectPtr<UHealthComponent> HealthComponent = nullptr;
+	UFUNCTION()
+	virtual float TakeDamage( float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 private:
 
@@ -73,18 +58,15 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<AEnemyAIController> CachedEnemyAIController = nullptr;
 
-	// Trace Hit Ignore List
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
-	TArray<AActor*> HitIgnoreList;
-
-	FVector LastBaseLocation;
-	FVector LastTipLocation;
-	bool bHasLastLocation = false;
-
 	// Health
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Health", meta = (AllowPrivateAccess = "true"))
 	float EnemyMaxHealth = 100.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health", meta = (AllowPrivateAccess = "true"))
 	float EnemyCurrentHealth = 100.0f;
+
+	// Boss Phases
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Health|Boss", meta = (AllowPrivateAccess = "true"))
+	bool bHasPhaseTwo = false;
+
 };
