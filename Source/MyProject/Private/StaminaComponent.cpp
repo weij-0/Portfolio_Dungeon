@@ -1,0 +1,39 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "StaminaComponent.h"
+
+// Sets default values for this component's properties
+UStaminaComponent::UStaminaComponent()
+{
+	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
+	// off to improve performance if you don't need them.
+	PrimaryComponentTick.bCanEverTick = false;
+
+	// ...
+}
+
+// Called when the game starts
+void UStaminaComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// ...
+	
+}
+
+void UStaminaComponent::InitializeStamina(float InitMaxStamina, float InitCurrentStamina)
+{
+	MaxStamina = InitMaxStamina;
+	CurrentStamina = FMath::Clamp(InitCurrentStamina, 0.0f, MaxStamina);
+
+	OnStaminaChanged.Broadcast(GetCurrentStaminaPercent(), GetCurrentStamina(), GetMaxStamina());
+}
+
+void UStaminaComponent::UpdateStamina(float NewStamina)
+{
+	CurrentStamina = FMath::Clamp(NewStamina, 0.0f, MaxStamina);
+
+	OnStaminaChanged.Broadcast(GetCurrentStaminaPercent(), GetCurrentStamina(), GetMaxStamina());
+}
+

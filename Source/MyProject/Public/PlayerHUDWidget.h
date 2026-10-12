@@ -21,7 +21,7 @@ public:
 	void UpdateHealthBar(float Percent, float CurrentHealth, float MaxHealth);
 
 	UFUNCTION(BlueprintCallable, Category = "HUD")
-	void UpdateManaBar(float Percent);
+	void UpdateManaBar(float Percent, float CurrentMana, float MaxMana);
 
 	UFUNCTION(BlueprintCallable, Category = "HUD")
 	void SetCrosshairVisibility(bool bIsTargetingPickup);
@@ -30,6 +30,7 @@ protected:
 
 	// Called when the widget is constructed (similar to BeginPlay)
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	UProgressBar* HealthBar;

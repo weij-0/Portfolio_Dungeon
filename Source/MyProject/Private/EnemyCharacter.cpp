@@ -59,7 +59,7 @@ void AEnemyCharacter::HandleOnHealthChanged(float Percent, float CurrentHealth, 
 	
 }
 
-// HealthComponent braodcast to OnDeath
+// HealthComponent broadcast to OnDeath
 void AEnemyCharacter::HandleOnDeath(AActor* DamagedActor, AController* InstigatedBy)
 {
 	UBrainComponent* BrainComponent = CachedEnemyAIController->GetBrainComponent();

@@ -91,6 +91,11 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Inventory")
 	void OnToggleInventoryEvent();
 
+	/* Event Handlers */
+	// StaminaComponent broadcast
+	UFUNCTION()
+	void HandleOnStaminaChanged(float NewPercent, float NewCurrentStamina, float NewMaxStamina);
+
 private:
 	/* Cache */
 	UPROPERTY(Transient)
@@ -102,6 +107,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
+
 
 	/* Enhanced Input Assets */
 	UPROPERTY(EditAnywhere, Category = "Input")
@@ -214,10 +220,6 @@ private:
 	TObjectPtr<UAnimMontage> BasicAttack = nullptr;
 
 public:
-
-	/* Update UI */
-	void UpdateHUDMana();
-	void UpdateHUDStamina();
 
 	/* Interaction */
 	void PerformInteractionTrace();

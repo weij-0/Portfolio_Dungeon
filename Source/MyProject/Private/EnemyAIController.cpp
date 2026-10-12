@@ -200,7 +200,7 @@ void AEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus St
 		else
 		{
 			// Store last seen location before starting timer
-			BB->SetValueAsBool(HasLineOfSightKey.SelectedKeyName, false);
+			BB->SetValueAsBool(HasLineOfSightKey.SelectedKeyName, true);
 			
 			BB->SetValueAsVector(LastSeenTargetLocationKey.SelectedKeyName, Stimulus.StimulusLocation);
 

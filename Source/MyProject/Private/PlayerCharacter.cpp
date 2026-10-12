@@ -12,9 +12,11 @@
 #include "InputActionValue.h"
 
 #include "MyPlayerController.h"
+#include "HealthComponent.h"
+#include "ManaComponent.h"
+#include "StaminaComponent.h"
 #include "StaminaWidget.h"
 #include "ItemPickup.h"
-#include "HealthComponent.h"
 #include "InventoryComponent.h"
 #include "InteractionInterface.h"
 
@@ -55,6 +57,7 @@ APlayerCharacter::APlayerCharacter()
 	StaminaWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	StaminaWidgetComponent->SetDrawAtDesiredSize(true);
 	StaminaWidgetComponent->SetVisibility(false);
+	StaminaWidgetComponent->SetOnlyOwnerSee(true); // Set only visible to local player
 
 	/* Crouch */
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
@@ -80,7 +83,6 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UpdateHUDStamina();
 }
 
 // Cache Controller
@@ -90,10 +92,39 @@ void APlayerCharacter::PossessedBy(AController* PlayerController)
 
 	CachedPlayerController = Cast<AMyPlayerController>(PlayerController);
 
+	// Initialize Health Component
 	if (HealthComponent)
 	{
 		PlayerCurrentHealth = PlayerMaxHealth;
 		HealthComponent->InitializeHealth(PlayerMaxHealth, PlayerCurrentHealth);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter: HealthComponent is not valid!"));
+	}
+
+	// Initialize Mana Component
+	if (GetManaComponent())
+	{
+		CurrentMana = MaxMana;
+		ManaComponent->InitializeMana(MaxMana, CurrentMana);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter: ManaComponent is not valid!"));
+	}
+
+	// Initialize Stamina Component
+	if (GetStaminaComponent())
+	{
+		StaminaComponent->OnStaminaChanged.AddUniqueDynamic(this, &APlayerCharacter::HandleOnStaminaChanged);
+
+		CurrentStamina = MaxStamina;
+		StaminaComponent->InitializeStamina(MaxStamina, CurrentStamina);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter: StaminaComponent is not valid!"));
 	}
 }
 
@@ -105,23 +136,27 @@ void APlayerCharacter::Tick(float DeltaTime)
 	// Perform Line Trace every frame to detect Interactable Actors
 	PerformInteractionTrace();
 
-	if (bIsSprint && CurrentStamina > 0.0f)
+	if (GetStaminaComponent())
 	{
-		StaminaDeplete(DeltaTime, SprintStaminaCost);
-	}
-	else
-	{
-		if (bIsSprint)
+		if (bIsSprint && CurrentStamina > 0.0f)
 		{
-			StopSprint(); // Also trigger (bIsSprint = false) inside.
+			StaminaDeplete(DeltaTime, SprintStaminaCost);
 		}
+		else
+		{
+			if (bIsSprint)
+			{
+				StopSprint(); // Also trigger (bIsSprint = false) inside.
+			}
 
-		if (!GetWorldTimerManager().IsTimerActive(StaminaRegenDelayTimerHandle) && CurrentStamina < MaxStamina)
-		{
-			StaminaRegen(DeltaTime);
-		}
+			if (!GetWorldTimerManager().IsTimerActive(StaminaRegenDelayTimerHandle) && CurrentStamina < MaxStamina)
+			{
+				StaminaRegen(DeltaTime);
+			}
 		
+		}
 	}
+	
 }
 
 // Called to bind functionality to input
@@ -256,13 +291,16 @@ void APlayerCharacter::JumpOrDash(const FInputActionValue& Value)
 		GetCharacterMovement()->Velocity = FVector::ZeroVector;
 		LaunchCharacter(DashDirection * DashForce, true, true);
 		bCanDash = false;
-
 		
-		CurrentStamina = FMath::Clamp(CurrentStamina - DashStaminaCost, 0.0f, MaxStamina);
-		UpdateHUDStamina();
+		if (GetStaminaComponent())
+		{
+			// Deplete Stamina
+			CurrentStamina = FMath::Clamp(CurrentStamina - DashStaminaCost, 0.0f, MaxStamina);
+			StaminaComponent->UpdateStamina(CurrentStamina);
 
-		// Ready for Regen
-		GetWorldTimerManager().SetTimer(StaminaRegenDelayTimerHandle, StaminaRegenDelay, false);
+			// Ready for Regen
+			GetWorldTimerManager().SetTimer(StaminaRegenDelayTimerHandle, StaminaRegenDelay, false);
+		}
 	}
 }
 
@@ -303,8 +341,10 @@ void APlayerCharacter::Attack(const FInputActionValue& Value)
 }
 
 // Stamina
+
 void APlayerCharacter::StaminaDeplete(float DeltaTime, float StaminaCost)
 {
+	// Calculate new stamina value
 	if (CurrentStamina <= 0.0f)
 	{
 		CurrentStamina = 0.0f;
@@ -315,13 +355,41 @@ void APlayerCharacter::StaminaDeplete(float DeltaTime, float StaminaCost)
 		CurrentStamina = FMath::Clamp(CurrentStamina - (StaminaCost * DeltaTime), 0.0f, MaxStamina);
 	}
 
-	UpdateHUDStamina();
+	// Update StaminaComponent with the new value
+	StaminaComponent->UpdateStamina(CurrentStamina);
 }
 
 void APlayerCharacter::StaminaRegen(float DeltaTime)
 {
+	//Calculate new stamina value
 	CurrentStamina = FMath::Clamp(CurrentStamina + (StaminaRegenRate * DeltaTime), 0.0f, MaxStamina);
-	UpdateHUDStamina();
+	
+	// Update StaminaComponent with the new value
+	StaminaComponent->UpdateStamina(CurrentStamina);
+}
+
+/* Stamina Widget*/
+
+void APlayerCharacter::HandleOnStaminaChanged(float NewPercent, float NewCurrentStamina, float NewMaxStamina)
+{
+	if (!StaminaWidgetComponent) return;
+
+	// If Stamina is not full, show the widget and reset the fade timer
+	if (NewPercent < 1.0f)
+	{
+		GetWorldTimerManager().ClearTimer(StaminaWidgetFadeTimerHandle);
+
+		if (!StaminaWidgetComponent->IsVisible())
+		{
+			StaminaWidgetComponent->SetVisibility(true);
+		}
+	}
+	else if (NewPercent >= 1.0f && StaminaWidgetComponent->IsVisible() && !GetWorldTimerManager().IsTimerActive(StaminaWidgetFadeTimerHandle))
+	{	
+		// If Stamina is full, start the fade timer to hide the widget after a delay
+		GetWorldTimerManager().SetTimer(StaminaWidgetFadeTimerHandle, this, &APlayerCharacter::HideStaminaWidget, StaminaWidgetFadeDelay, false);
+	}
+	
 }
 
 void APlayerCharacter::HideStaminaWidget()
@@ -330,48 +398,6 @@ void APlayerCharacter::HideStaminaWidget()
 	{
 		StaminaWidgetComponent->SetVisibility(false);
 	}
-}
-
-void APlayerCharacter::UpdateHUDMana()
-{
-	if (CachedPlayerController && CachedPlayerController->HUDWidget)
-	{
-		float NewPercent = FMath::Clamp(CurrentMana / MaxMana, 0.0f, 1.0f);
-
-		CachedPlayerController->HUDWidget->UpdateManaBar(NewPercent);
-	}
-}
-
-void APlayerCharacter::UpdateHUDStamina()
-{
-	float NewPercent = FMath::Clamp(CurrentStamina / MaxStamina, 0.0f, 1.0f);
-
-	if (StaminaWidgetComponent)
-	{
-		if (!StaminaWidgetComponent->GetUserWidgetObject())
-		{
-			StaminaWidgetComponent->InitWidget();
-		}
-
-		UStaminaWidget* StaminaWidget = Cast<UStaminaWidget>(StaminaWidgetComponent->GetUserWidgetObject());
-		
-		if (StaminaWidget)
-		{
-			StaminaWidget->UpdateStaminaWidget(NewPercent);
-		}
-
-		if (NewPercent < 1.0f)
-		{
-			GetWorldTimerManager().ClearTimer(StaminaWidgetFadeTimerHandle);
-			
-			if (!StaminaWidgetComponent->IsVisible()) StaminaWidgetComponent->SetVisibility(true);
-		}
-		else if (NewPercent >= 1.0f && StaminaWidgetComponent->IsVisible() && !GetWorldTimerManager().IsTimerActive(StaminaWidgetFadeTimerHandle))
-		{
-			GetWorldTimerManager().SetTimer(StaminaWidgetFadeTimerHandle, this, &APlayerCharacter::HideStaminaWidget, StaminaWidgetFadeDelay, false);
-		}
-	}
-
 }
 
 void APlayerCharacter::PerformInteractionTrace()

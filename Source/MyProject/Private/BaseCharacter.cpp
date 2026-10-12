@@ -4,6 +4,8 @@
 #include "BaseCharacter.h"
 #include "Projectile.h"
 #include "HealthComponent.h"
+#include "ManaComponent.h"
+#include "StaminaComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -14,7 +16,7 @@ ABaseCharacter::ABaseCharacter()
 	PrimaryActorTick.bCanEverTick = false;
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
-	
+
 	WeaponMeshRight = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMeshRight"));
 	WeaponMeshRight->SetupAttachment(GetMesh(), FName("WeaponSocket_r"));
 
@@ -26,10 +28,15 @@ void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	/* Initialize Components */
 	if (HealthComponent)
 	{
-		HealthComponent->OnHitReact.AddDynamic(this, &ABaseCharacter::HandleOnHitReact);
+		HealthComponent->OnHitReact.AddUniqueDynamic(this, &ABaseCharacter::HandleOnHitReact);
 	}
+
+	ManaComponent = FindComponentByClass<UManaComponent>();
+	StaminaComponent = FindComponentByClass<UStaminaComponent>();
+
 }
 
 void ABaseCharacter::ExecuteMeleeHit(FName SocketName, float Damage, float Radius)
@@ -182,6 +189,12 @@ void ABaseCharacter::ClearHitIgnoreList()
 
 void ABaseCharacter::SpawnProjectile()
 {
+	if (!ProjectileClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SpawnProjectile: ProjectileClass is not set!"));
+		return;
+	}
+
 	// Owner actor location & rotation
 	FVector ForwardVector = GetActorForwardVector();
 	FRotator SpawnRotation = GetActorRotation();
@@ -199,6 +212,24 @@ void ABaseCharacter::SpawnProjectile()
 	// Spawn projectile
 	AProjectile* Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, FinalSpawnLocation, SpawnRotation, SpawnParams);
 
+}
+
+UStaminaComponent* ABaseCharacter::GetStaminaComponent()
+{
+	if (!StaminaComponent)
+	{
+		StaminaComponent = FindComponentByClass<UStaminaComponent>();
+	}
+	return StaminaComponent;
+}
+
+UManaComponent* ABaseCharacter::GetManaComponent()
+{
+	if (!ManaComponent)
+	{
+		ManaComponent = FindComponentByClass<UManaComponent>();
+	}
+	return ManaComponent;
 }
 
 void ABaseCharacter::HandleOnHitReact(AActor* DamageCauser)

@@ -2,8 +2,9 @@
 
 
 #include "PlayerHUDWidget.h"
-#include "PlayerCharacter.h"
+#include "GameFramework/Character.h"
 #include "HealthComponent.h"
+#include "ManaComponent.h"
 
 void UPlayerHUDWidget::UpdateHealthBar(float Percent, float CurrentHealth, float MaxHealth)
 {
@@ -13,7 +14,7 @@ void UPlayerHUDWidget::UpdateHealthBar(float Percent, float CurrentHealth, float
 	}
 }
 
-void UPlayerHUDWidget::UpdateManaBar(float Percent)
+void UPlayerHUDWidget::UpdateManaBar(float Percent, float CurrentMana, float MaxMana)
 {
 	if (ManaBar)
 	{
@@ -30,15 +31,44 @@ void UPlayerHUDWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	if (APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(GetOwningPlayerPawn()))
+	if (ACharacter* Character = Cast<ACharacter>(GetOwningPlayerPawn()))
 	{
-		if (UHealthComponent* HealthComp = PlayerChar->FindComponentByClass<UHealthComponent>())
+		/* Health Component */
+		if (UHealthComponent* HealthComp = Character->FindComponentByClass<UHealthComponent>())
 		{
-			HealthComp->OnHealthChanged.AddDynamic(this, &UPlayerHUDWidget::UpdateHealthBar);
+			HealthComp->OnHealthChanged.AddUniqueDynamic(this, &UPlayerHUDWidget::UpdateHealthBar);
 
 			/* Initialization */
 
 			UpdateHealthBar(HealthComp->GetCurrentHealthPercent(), HealthComp->GetCurrentHealth(), HealthComp->GetMaxHealth());
+		}
+
+		/* Mana Component */
+		if (UManaComponent* ManaComp = Character->FindComponentByClass<UManaComponent>())
+		{
+			ManaComp->OnManaChanged.AddUniqueDynamic(this, &UPlayerHUDWidget::UpdateManaBar);
+
+			/* Initialization */
+			UpdateManaBar(ManaComp->GetCurrentManaPercent(), ManaComp->GetCurrentMana(), ManaComp->GetMaxMana());
+		}
+	}
+}
+
+void UPlayerHUDWidget::NativeDestruct()
+{
+	Super::NativeDestruct();
+
+	if (ACharacter* Character = Cast<ACharacter>(GetOwningPlayerPawn()))
+	{
+		/* Health Component */
+		if (UHealthComponent* HealthComp = Character->FindComponentByClass<UHealthComponent>())
+		{
+			HealthComp->OnHealthChanged.RemoveDynamic(this, &UPlayerHUDWidget::UpdateHealthBar);
+		}
+		/* Mana Component */
+		if (UManaComponent* ManaComp = Character->FindComponentByClass<UManaComponent>())
+		{
+			ManaComp->OnManaChanged.RemoveDynamic(this, &UPlayerHUDWidget::UpdateManaBar);
 		}
 	}
 }

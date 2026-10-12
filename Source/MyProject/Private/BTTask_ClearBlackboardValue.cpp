@@ -17,7 +17,8 @@ EBTNodeResult::Type UBTTask_ClearBlackboardValue::ExecuteTask(UBehaviorTreeCompo
 	if (BB)
 	{
 		BB->ClearValue(GetSelectedBlackboardKey());
+		return EBTNodeResult::Succeeded;
 	}
 
-	return EBTNodeResult::Succeeded;
+	return EBTNodeResult::Failed;
 }

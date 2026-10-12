@@ -50,13 +50,6 @@ void AMyPlayerController::OnPossess(APawn* InPawn)
 			HUDWidget->AddToViewport();
 
 			HUDWidget->SetCrosshairVisibility(false);
-
-			if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
-			{
-				// Update HUD (Initialize)
-				PlayerCharacter->UpdateHUDMana();
-				PlayerCharacter->UpdateHUDStamina();
-			}
 		}
 	}
 }

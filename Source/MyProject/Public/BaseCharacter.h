@@ -7,6 +7,8 @@
 #include "BaseCharacter.generated.h"
 
 class UHealthComponent;
+class UManaComponent;
+class UStaminaComponent;
 class UStaticMeshComponent;
 class UAnimMontage;
 class AProjectile;
@@ -41,7 +43,8 @@ public:
 	void SpawnProjectile();
 
 	/* Setters & Getters */
-	FORCEINLINE UHealthComponent* GetHealthComponent() const { return HealthComponent; }
+	UStaminaComponent* GetStaminaComponent();
+	UManaComponent* GetManaComponent();
 
 protected:
 	// Called when the game starts or when spawned
@@ -54,6 +57,14 @@ protected:
 	/* Health Component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UHealthComponent> HealthComponent = nullptr;
+
+	/* Mana Component */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UManaComponent> ManaComponent = nullptr;
+
+	/* Stamina Component */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UStaminaComponent> StaminaComponent = nullptr;
 
 	/* Weapon Mesh */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")

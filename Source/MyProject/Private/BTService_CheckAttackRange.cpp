@@ -12,8 +12,7 @@ UBTService_CheckAttackRange::UBTService_CheckAttackRange()
 	NodeName = TEXT("Check Attack Range");
 
 	TargetActorKey.SelectedKeyName = "TargetActor";
-	IsAttackRangeKey.SelectedKeyName = "IsAttackRange";
-	CurrentAttackRangeKey.SelectedKeyName = "CurrentAttackRange";
+	TargetActorLocationKey.SelectedKeyName = "TargetActorLocation";
 	EnemyDistanceToTargetKey.SelectedKeyName = "EnemyDistanceToTarget";
 
 }
@@ -27,18 +26,11 @@ void UBTService_CheckAttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 	AAIController* AIController = OwnerComp.GetAIOwner();
 
 	if (!BB || !AIController) return;
-	
-	// Set current regardless fails
-	BB->SetValueAsFloat(CurrentAttackRangeKey.SelectedKeyName, AttackRange);
 
 	APawn* AIPawn = AIController->GetPawn();
 	AActor* Target = Cast<AActor>(BB->GetValueAsObject(TargetActorKey.SelectedKeyName));
 			
-	if (!AIPawn || !Target)
-	{
-		BB->SetValueAsBool(IsAttackRangeKey.SelectedKeyName, false);
-		return;
-	}
+	if (!AIPawn || !Target) return;
 
 	/* Calculate Distance Between */
 
@@ -64,11 +56,9 @@ void UBTService_CheckAttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 	}
 
 	float SurfaceDistance = FMath::Max(0.0f, CenterDistance - SelfRadius - TargetRadius);
-	bool bIsInAttackRange = SurfaceDistance <= AttackRange;
 
 	// Set the blackboard value
-	BB->SetValueAsBool(IsAttackRangeKey.SelectedKeyName, bIsInAttackRange);
-
+	BB->SetValueAsVector(TargetActorLocationKey.SelectedKeyName, Target->GetActorLocation());
 	BB->SetValueAsFloat(EnemyDistanceToTargetKey.SelectedKeyName, SurfaceDistance);
 
 	
