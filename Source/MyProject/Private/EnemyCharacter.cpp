@@ -2,12 +2,14 @@
 
 
 #include "EnemyCharacter.h"
+#include "Components/CapsuleComponent.h"
 #include "HealthComponent.h"
 #include "EnemyAIController.h"
 #include "Kismet/GameplayStatics.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BrainComponent.h"
 #include "Perception/AISense_Damage.h"
+
 
 // Sets default values
 AEnemyCharacter::AEnemyCharacter()
@@ -27,7 +29,7 @@ void AEnemyCharacter::BeginPlay()
 	if (HealthComponent)
 	{
 		HealthComponent->OnHealthChanged.AddDynamic(this, &AEnemyCharacter::HandleOnHealthChanged);
-		HealthComponent->OnDeath.AddDynamic(this, &AEnemyCharacter::HandleOnDeath);
+		HealthComponent->OnDeath.AddUniqueDynamic(this, &AEnemyCharacter::HandleOnDeath);
 
 		HealthComponent->InitializeHealth(EnemyMaxHealth, EnemyCurrentHealth);
 	}
@@ -62,12 +64,22 @@ void AEnemyCharacter::HandleOnHealthChanged(float Percent, float CurrentHealth, 
 // HealthComponent broadcast to OnDeath
 void AEnemyCharacter::HandleOnDeath(AActor* DamagedActor, AController* InstigatedBy)
 {
+	if (!bIsAlive) return;
+
+	bIsAlive = false;
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	DetachFromControllerPendingDestroy();
+
 	UBrainComponent* BrainComponent = CachedEnemyAIController->GetBrainComponent();
 
 	if (BrainComponent)
 	{
 		BrainComponent->StopLogic("Dead");
 	}
+
+	
+
 }
 
 float AEnemyCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)

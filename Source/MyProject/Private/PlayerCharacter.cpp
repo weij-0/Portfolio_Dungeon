@@ -97,6 +97,8 @@ void APlayerCharacter::PossessedBy(AController* PlayerController)
 	{
 		PlayerCurrentHealth = PlayerMaxHealth;
 		HealthComponent->InitializeHealth(PlayerMaxHealth, PlayerCurrentHealth);
+
+		HealthComponent->OnDeath.AddUniqueDynamic(this, &APlayerCharacter::HandleOnDeath);
 	}
 	else
 	{
@@ -369,6 +371,16 @@ void APlayerCharacter::StaminaRegen(float DeltaTime)
 }
 
 /* Stamina Widget*/
+
+void APlayerCharacter::HandleOnDeath(AActor* DamagedActor, AController* InstigatedBy)
+{
+	if (!bIsAlive) return;
+
+	bIsAlive = false;
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	DetachFromControllerPendingDestroy();
+}
 
 void APlayerCharacter::HandleOnStaminaChanged(float NewPercent, float NewCurrentStamina, float NewMaxStamina)
 {

@@ -94,6 +94,9 @@ protected:
 	/* Event Handlers */
 	// StaminaComponent broadcast
 	UFUNCTION()
+	void HandleOnDeath(AActor* DamagedActor, AController* InstigatedBy);
+	
+	UFUNCTION()
 	void HandleOnStaminaChanged(float NewPercent, float NewCurrentStamina, float NewMaxStamina);
 
 private:

@@ -27,6 +27,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	TSubclassOf<class AProjectile> ProjectileClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	bool bIsAlive = true;
+
 	/* Functions */
 
 	// Called by the AnimNotify at the impact frame
