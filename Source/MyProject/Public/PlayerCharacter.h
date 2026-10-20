@@ -33,7 +33,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	virtual void PossessedBy(AController* PlayerController);
+	virtual void PossessedBy(AController* NewController) override;
 
 public:	
 	// Called every frame
@@ -212,7 +212,7 @@ private:
 	/* Item Pickup */
 
 	UPROPERTY(VisibleAnywhere, Category = "Interaction")
-	AActor* CurrentTargetInteraction;
+	TWeakObjectPtr<AActor> CurrentTargetInteraction;
 
 	UPROPERTY(EditAnywhere, Category = "Interaction")
 	float InteractionTraceDistance = 600.0f;

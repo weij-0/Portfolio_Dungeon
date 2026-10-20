@@ -90,7 +90,7 @@ void ALock::Tick(float DeltaTime)
 
 void ALock::ShowInteractionPrompt_Implementation()
 {
-	if (InteractPromptWidgetComponent && !TriggerInteractComp->GetIsTriggered())
+	if (InteractPromptWidgetComponent && TriggerInteractComp && !TriggerInteractComp->GetIsTriggered())
 	{
 		InteractPromptWidgetComponent->SetVisibility(true);
 	}
@@ -144,7 +144,7 @@ void ALock::InitializeInteractionWidget()
 
 		if (InteractionWidget)
 		{
-			InteractionWidget->SetInteractionData(GetInteractionData_Implementation());
+			InteractionWidget->SetInteractionData(IInteractionInterface::Execute_GetInteractionData(this));
 		}
 	}
 }
