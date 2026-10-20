@@ -44,26 +44,24 @@ void AItemPickup::HideInteractionPrompt_Implementation()
 	}
 }
 
-void AItemPickup::Interact_Implementation(APlayerCharacter* Character)
+void AItemPickup::Interact_Implementation(AActor* InteractorActor)
 {
-	if (Character && ItemInstance)
+	if (InteractorActor && ItemInstance)
 	{
-		UInventoryComponent* CharacterInventory = Character->FindComponentByClass<UInventoryComponent>();
+		UInventoryComponent* CharacterInventory = InteractorActor->FindComponentByClass<UInventoryComponent>();
 
 		if (CharacterInventory)
 		{
-			//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, TEXT("Pickup: Found Inventory Component! Sending item..."));
-
 			UItemBase* ItemCopy = ItemInstance->CreateItemCopy();
 
 			if (CharacterInventory->AddItem(ItemCopy))
 			{
-				//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Pickup: AddItem returned TRUE! Destroying actor."));
+				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Item Picked up!"));
 				Destroy();
 			}
 			else
 			{
-				//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, TEXT("Inventory is full!"));
+				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, TEXT("Inventory is full!"));
 				if (ItemCopy)
 				{
 					ItemCopy->MarkAsGarbage();
@@ -72,7 +70,7 @@ void AItemPickup::Interact_Implementation(APlayerCharacter* Character)
 		}
 		else
 		{
-			//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Pickup Error: Character does NOT have a UInventoryComponent attached!"));
+			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Pickup Error: Character does NOT have a UInventoryComponent attached!"));
 		}
 	}
 }
@@ -104,6 +102,13 @@ void AItemPickup::InitializeInteractionWidget()
 	{
 		UInteractionWidget* InteractionWidget = Cast<UInteractionWidget>(InteractPromptWidgetComponent->GetUserWidgetObject());
 		
+		if (!InteractionWidget)
+		{
+			// Force construction if Slate hasn't initialized the widget yet
+			InteractPromptWidgetComponent->InitWidget();
+			InteractionWidget = Cast<UInteractionWidget>(InteractPromptWidgetComponent->GetUserWidgetObject());
+		}
+
 		if (InteractionWidget)
 		{
 			InteractionWidget->SetInteractionData(GetInteractionData_Implementation());

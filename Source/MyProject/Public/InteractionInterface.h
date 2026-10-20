@@ -28,7 +28,7 @@ class MYPROJECT_API IInteractionInterface
 public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	void Interact(APlayerCharacter* Character);
+	void Interact(AActor* InteractorActor);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
 	FInteractionData GetInteractionData() const;

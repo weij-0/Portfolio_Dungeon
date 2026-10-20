@@ -4,15 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "InteractionInterface.h"
 #include "Lock.generated.h"
 
 class USceneComponent;
 class UStaticMeshComponent;
 class UTriggerBoxComponent;
+class UTriggerInteractComponent;
 class UMoverAComponent;
+class UWidgetComponent;
 
 UCLASS()
-class MYPROJECT_API ALock : public AActor
+class MYPROJECT_API ALock : public AActor, public IInteractionInterface
 {
 	GENERATED_BODY()
 	
@@ -30,6 +33,19 @@ public:
 
 	/* Functions */
 
+	/* Interaction Interface */
+	virtual void ShowInteractionPrompt_Implementation() override;
+	virtual void HideInteractionPrompt_Implementation() override;
+	virtual void Interact_Implementation(AActor* InteractorActor) override;
+	virtual FInteractionData GetInteractionData_Implementation() const override;
+
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
+	void InitializeInteractionWidget();
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction")
+	TObjectPtr<const UInputAction> InteractionAction = nullptr;
+
+	/* Getters & Setters */
 	FORCEINLINE UStaticMeshComponent* GetPrimaryMesh() const { return PrimaryMesh; }
 	FORCEINLINE UStaticMeshComponent* GetSecondaryMesh() const { return SecondaryMesh; }
 
@@ -58,10 +74,16 @@ protected:
 	/* Components */
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UTriggerBoxComponent* TriggerComp;
+	UMoverAComponent* MoverComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UMoverAComponent* MoverComp;
+	UTriggerBoxComponent* TriggerBoxComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UTriggerInteractComponent* TriggerInteractComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UWidgetComponent* InteractPromptWidgetComponent;
 
 	/* Properties */
 

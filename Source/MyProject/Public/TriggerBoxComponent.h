@@ -30,7 +30,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	/* Functions */
-
+	UFUNCTION(BlueprintCallable, Category = "Trigger")
 	void Trigger(bool NewTriggerValue);
 
 	UFUNCTION()

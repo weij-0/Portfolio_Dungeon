@@ -6,8 +6,11 @@
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "TriggerBoxComponent.h"
+#include "TriggerInteractComponent.h"
 #include "MoverAComponent.h"
 #include "InventoryComponent.h"
+#include "Components/WidgetComponent.h"
+#include "InteractionWidget.h"
 
 #include "Kismet/GameplayStatics.h"
 
@@ -33,9 +36,6 @@ ALock::ALock()
 
 	/* Components */
 
-	TriggerComp = CreateDefaultSubobject<UTriggerBoxComponent>(TEXT("TriggerComp"));
-	TriggerComp->SetupAttachment(RootComp);
-
 	MoverComp = CreateDefaultSubobject<UMoverAComponent>(TEXT("MoverComp"));
 
 	/* Properties */
@@ -52,16 +52,101 @@ void ALock::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Dynamic Components
+	TriggerBoxComp = FindComponentByClass<UTriggerBoxComponent>();
+	TriggerInteractComp = FindComponentByClass<UTriggerInteractComponent>();
+	InteractPromptWidgetComponent = FindComponentByClass<UWidgetComponent>();
+
+	if (TriggerBoxComp)
+	{
+		UE_LOG(LogTemp, Display, TEXT("Trigger Box Component found on %s"), *GetName());
+	}
+
+	if (TriggerInteractComp)
+	{
+		UE_LOG(LogTemp, Display, TEXT("Trigger Interact Component found on %s"), *GetName());
+	}
+
+	if (InteractPromptWidgetComponent)
+	{
+		UE_LOG(LogTemp, Display, TEXT("Trigger Interact Component found on %s"), *GetName());
+		InteractPromptWidgetComponent->SetVisibility(false);
+	}
+
+	// Key Item Mesh Visibility
 	if (KeyItemMesh)
 	{
 		KeyItemMesh->SetVisibility(bIsKeyPlaced);
 	}
+
+	InitializeInteractionWidget();
 }
 
 // Called every frame
 void ALock::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+void ALock::ShowInteractionPrompt_Implementation()
+{
+	if (InteractPromptWidgetComponent && !TriggerInteractComp->GetIsTriggered())
+	{
+		InteractPromptWidgetComponent->SetVisibility(true);
+	}
+}
+
+void ALock::HideInteractionPrompt_Implementation()
+{
+	if (InteractPromptWidgetComponent)
+	{
+		InteractPromptWidgetComponent->SetVisibility(false);
+	}
+}
+
+void ALock::Interact_Implementation(AActor* InteractorActor)
+{
+	if (TriggerInteractComp && InteractorActor)
+	{
+		TriggerInteractComp->Trigger(true, InteractorActor);
+
+		// Hide prompt if the trigger succeeded
+		if (TriggerInteractComp->GetIsTriggered())
+		{
+			HideInteractionPrompt_Implementation();
+		}
+	}
+}
+
+FInteractionData ALock::GetInteractionData_Implementation() const
+{
+	FInteractionData Data;
+
+	Data.InteractionText = FText::FromString("Open");
+	//Data.DisplayName = FText::FromString("");
+	Data.InputAction = InteractionAction;
+
+	return Data;
+}
+
+void ALock::InitializeInteractionWidget()
+{
+	if (InteractPromptWidgetComponent)
+	{
+		UInteractionWidget* InteractionWidget = Cast<UInteractionWidget>(InteractPromptWidgetComponent->GetUserWidgetObject());
+
+		if (!InteractionWidget)
+		{
+			// Force construction if Slate hasn't initialized the widget yet
+			InteractPromptWidgetComponent->InitWidget();
+			InteractionWidget = Cast<UInteractionWidget>(InteractPromptWidgetComponent->GetUserWidgetObject());
+		}
+
+		if (InteractionWidget)
+		{
+			InteractionWidget->SetInteractionData(GetInteractionData_Implementation());
+		}
+	}
 }
 
 bool ALock::ProcessLockCheckInventory(AActor* ActorToCheck)
@@ -75,18 +160,9 @@ bool ALock::ProcessLockCheckInventory(AActor* ActorToCheck)
 		if (InventoryComp)
 		{
 			UItemBase* KeyItemInstance = InventoryComp->FindItemInstanceByID(KeyItemID);
-
-			//float DamageDealt = UGameplayStatics::ApplyDamage(ActorToCheck, 10.0f, ActorToCheck->GetInstigatorController(), this, UDamageType::StaticClass());
-
-			//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Damage: %f"), DamageDealt));
-
-			//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("KeyItemID: %s"), *KeyItemID.ToString()));
 			
 			if (KeyItemInstance && InventoryComp->HasQuestItem(KeyItemInstance, KeyItemQty))
 			{
-				
-				//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("KeyItemInstance: %s"), *KeyItemInstance->ItemID.ToString()));
-
 				SetIsKeyPlaced(true);
 
 				if (bRemoveKeyOnUse) InventoryComp->RemoveItemByInstance(KeyItemInstance, KeyItemQty);
