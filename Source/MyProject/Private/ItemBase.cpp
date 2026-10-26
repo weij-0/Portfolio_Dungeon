@@ -11,9 +11,9 @@ UItemBase::UItemBase()
 	ItemRarity = EItemRarity::Common;
 }
 
-UItemBase* UItemBase::CreateItemCopy(UObject* NewOuter) const
+UItemBase* UItemBase::CreateItemCopy() const
 {
-	UItemBase* ItemCopy = NewObject<UItemBase>(NewOuter, GetClass());
+	UItemBase* ItemCopy = NewObject<UItemBase>(GetOuter(), GetClass());
 
 	if (ItemCopy)
 	{

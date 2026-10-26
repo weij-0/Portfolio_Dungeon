@@ -41,7 +41,7 @@ private:
 
 	/* Components */
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere);
 	TObjectPtr<ALock> Lock;
 
 	UPROPERTY()

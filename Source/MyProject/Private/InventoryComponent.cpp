@@ -24,51 +24,55 @@ void UInventoryComponent::BeginPlay()
 
 bool UInventoryComponent::AddItem(UItemBase* NewItem)
 {
-	if (!NewItem) return false;
-
-	// Storage full
-	if (InventoryItems.Num() >= MaxInventorySize) return false;
-
-	// If item stackable
-	if (NewItem->NumericData.bIsStackable)
+	if (NewItem)
 	{
-
-		// Add item to existing stack
-
-		for (UItemBase* ExistingItem : InventoryItems)
+		// Storage full
+		if (InventoryItems.Num() >= MaxInventorySize)
 		{
-			if (ExistingItem && ExistingItem->ItemID == NewItem->ItemID && !ExistingItem->IsFullItemStack())
-			{
-				int32 SpaceLeft = ExistingItem->NumericData.MaxStackSize - ExistingItem->Quantity;
-				int32 QuantityToAdd = FMath::Min(NewItem->Quantity, SpaceLeft);
-					
-				// Update exsiting quantity & overloaded quantity
-				ExistingItem->SetQuantity(ExistingItem->Quantity + QuantityToAdd);
-				NewItem->SetQuantity(NewItem->Quantity - QuantityToAdd);
-
-				if (NewItem->Quantity <= 0)
-				{
-					OnInventoryUpdated.Broadcast();
-					return true; // All quantity added, no need to add new item
-				}
-			}
+			return false;
 		}
 
-		// Add remaining quantity as a new stack if there's space in the inventory
-		if (NewItem->Quantity > 0 && InventoryItems.Num() < MaxInventorySize)
+		// If item stackable
+		if (NewItem->NumericData.bIsStackable)
+		{
+
+			// Add item to existing stack
+
+			for (UItemBase* ExistingItem : InventoryItems)
+			{
+				if (ExistingItem && ExistingItem->ItemID == NewItem->ItemID && !ExistingItem->IsFullItemStack())
+				{
+					int32 SpaceLeft = ExistingItem->NumericData.MaxStackSize - ExistingItem->Quantity;
+					int32 QuantityToAdd = FMath::Min(NewItem->Quantity, SpaceLeft);
+					
+					// Update exsiting quantity & overloaded quantity
+					ExistingItem->SetQuantity(ExistingItem->Quantity + QuantityToAdd);
+					NewItem->SetQuantity(NewItem->Quantity - QuantityToAdd);
+
+					if (NewItem->Quantity <= 0)
+					{
+						OnInventoryUpdated.Broadcast();
+						return true; // All quantity added, no need to add new item
+					}
+				}
+			}
+
+			// Add remaining quantity as a new stack if there's space in the inventory
+			if (NewItem->Quantity > 0 && InventoryItems.Num() < MaxInventorySize)
+			{
+				InventoryItems.Add(NewItem);
+				OnInventoryUpdated.Broadcast();
+			}
+		}
+		else
 		{
 			InventoryItems.Add(NewItem);
 			OnInventoryUpdated.Broadcast();
 		}
-	}
-	else
-	{
-		InventoryItems.Add(NewItem);
-		OnInventoryUpdated.Broadcast();
+		return true;
 	}
 
-	// No error, item added successfully
-	return true;
+	return false;
 }
 
 UItemBase* UInventoryComponent::FindItemInstanceByID(const FName TargetItemID) const
@@ -88,7 +92,7 @@ UItemBase* UInventoryComponent::FindItemInstanceByID(const FName TargetItemID) c
 
 bool UInventoryComponent::RemoveItemByInstance(UItemBase* ItemInstance, const int32 Quantity)
 {
-	if (ItemInstance && Quantity >= 1)
+	if (ItemInstance || Quantity >= 1)
 	{
 		if (InventoryItems.Contains(ItemInstance))
 		{
@@ -98,7 +102,7 @@ bool UInventoryComponent::RemoveItemByInstance(UItemBase* ItemInstance, const in
 			}
 			else
 			{
-				InventoryItems.RemoveSingle(ItemInstance);
+				InventoryItems.RemoveSingleSwap(ItemInstance);
 			}
 
 			//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::Printf(TEXT("Key removed.")));
@@ -114,7 +118,7 @@ bool UInventoryComponent::RemoveItemByInstance(UItemBase* ItemInstance, const in
 
 bool UInventoryComponent::HasQuestItem(UItemBase* ItemInstance, const int32 Quantity)
 {
-	if (ItemInstance && Quantity >= 1)
+	if (ItemInstance || Quantity >= 1)
 	{
 		if (InventoryItems.Contains(ItemInstance))
 		{

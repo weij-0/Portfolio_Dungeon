@@ -309,12 +309,10 @@ void APlayerCharacter::JumpOrDash(const FInputActionValue& Value)
 // Interact Action (F)
 void APlayerCharacter::InteractButtonItemPickup(const FInputActionValue& Value)
 {
-	AActor* Target = CurrentTargetInteraction.Get();
-
-	if (Target && Target->Implements<UInteractionInterface>())
+	if (CurrentTargetInteraction && CurrentTargetInteraction->Implements<UInteractionInterface>())
 	{
 		// Trigger the interaction logic in the interacting actor
-		IInteractionInterface::Execute_Interact(Target, this);
+		IInteractionInterface::Execute_Interact(CurrentTargetInteraction, this);
 	}
 }
 
@@ -416,65 +414,61 @@ void APlayerCharacter::HideStaminaWidget()
 
 void APlayerCharacter::PerformInteractionTrace()
 {
-	if (!IsLocallyControlled() || !FollowCamera) return;
-
-	/* Old Target*/
-	AActor* OldTarget = CurrentTargetInteraction.Get();
-	AActor* NewTarget = nullptr;
-
-	/* Line tracing from camera to endpoints */
-	const FVector StartPoint = FollowCamera->GetComponentLocation();
-	const FVector ForwardVector = FollowCamera->GetForwardVector();
-	const FVector EndPoint = StartPoint + (ForwardVector * InteractionTraceDistance);
-
-	// Physics query parameters
-	FHitResult HitResult;
-	FCollisionQueryParams TraceParams;
-	TraceParams.AddIgnoredActor(this);
-
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartPoint, EndPoint, ECC_Visibility, TraceParams))
+	if (FollowCamera)
 	{
-		AActor* HitActor = HitResult.GetActor();
+		/* Line tracing from camera to endpoints */
 
-		if (HitActor && HitActor->Implements<UInteractionInterface>())
+		const FVector StartPoint = FollowCamera->GetComponentLocation();
+		const FVector ForwardVector = FollowCamera->GetForwardVector();
+		const FVector EndPoint = StartPoint + (ForwardVector * InteractionTraceDistance);
+
+		// Physics query parameters
+		FHitResult HitResult;
+		FCollisionQueryParams TraceParams;
+		TraceParams.AddIgnoredActor(this);
+
+		if (GetWorld()->LineTraceSingleByChannel(HitResult, StartPoint, EndPoint, ECC_Visibility, TraceParams))
 		{
-			NewTarget = HitActor;
+			AActor* HitActor = HitResult.GetActor();
+
+			if (HitActor && HitActor->Implements<UInteractionInterface>())
+			{
+				if (HitActor != CurrentTargetInteraction)
+				{
+					// Hide UI prompt on old target
+					if (CurrentTargetInteraction && CurrentTargetInteraction->Implements<UInteractionInterface>())
+					{
+						IInteractionInterface::Execute_HideInteractionPrompt(CurrentTargetInteraction);
+					}
+
+					CurrentTargetInteraction = HitActor;
+
+					// Show UI prompt on new target
+					IInteractionInterface::Execute_ShowInteractionPrompt(CurrentTargetInteraction);
+
+					if (CachedPlayerController && CachedPlayerController->HUDWidget)
+					{
+						CachedPlayerController->HUDWidget->SetCrosshairVisibility(true);
+					}
+				}
+				return;
+			}
+		}
+		// If LineTrace didn't hit anything
+		if (CurrentTargetInteraction) 
+		{
+			// Hide previous visible UI prompt
+			if (CurrentTargetInteraction && CurrentTargetInteraction->Implements<UInteractionInterface>())
+			{
+				IInteractionInterface::Execute_HideInteractionPrompt(CurrentTargetInteraction);
+			}
+
+			CurrentTargetInteraction = nullptr;
+
+			if (CachedPlayerController && CachedPlayerController->HUDWidget)
+			{
+				CachedPlayerController->HUDWidget->SetCrosshairVisibility(false);
+			}
 		}
 	}
-
-	// If target changed (Target hit / lost)
-	if (NewTarget != OldTarget)
-	{
-		// Hide UI prompt on old target
-		if (OldTarget)
-		{
-			IInteractionInterface::Execute_HideInteractionPrompt(OldTarget);
-		}
-
-		CurrentTargetInteraction = NewTarget;
-
-		// Show UI prompt on new target
-		if (NewTarget)
-		{
-			IInteractionInterface::Execute_ShowInteractionPrompt(NewTarget);
-		}
-		
-		if (CachedPlayerController && CachedPlayerController->HUDWidget)
-		{
-			CachedPlayerController->HUDWidget->SetCrosshairVisibility(NewTarget != nullptr);
-		}
-	}
-	// If LineTrace didn't hit anything
-	else if (!NewTarget && !CurrentTargetInteraction.IsExplicitlyNull())
-	{
-		// Clear the current target if we previously had one (Also clear if previous target is destroyed)
-		CurrentTargetInteraction = nullptr;
-
-		// Hide UI prompt on old target
-		if (CachedPlayerController && CachedPlayerController->HUDWidget)
-		{
-			CachedPlayerController->HUDWidget->SetCrosshairVisibility(false);
-		}
-	}
-	
 }

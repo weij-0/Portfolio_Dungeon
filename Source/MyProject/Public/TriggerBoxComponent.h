@@ -43,7 +43,7 @@ protected:
 
 	/* Properties */
 
-	UPROPERTY(EditAnywhere, Category = Category = "Keys and Tags")
+	UPROPERTY(EditAnywhere, Category = Category = "Keys and Tags");
 	TArray<FName> AcceptableActorTags;
 
 
@@ -55,15 +55,15 @@ private:
 
 	/* Properties */
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere);
 	ALock* Lock = nullptr;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere);
 	UMoverAComponent* Mover = nullptr;
 
 	UPROPERTY(VisibleAnywhere)
 	bool bIsTriggered = false;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere);
 	int32 ActivatorCount = 0;
 };

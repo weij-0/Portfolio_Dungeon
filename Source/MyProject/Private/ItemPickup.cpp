@@ -52,7 +52,7 @@ void AItemPickup::Interact_Implementation(AActor* InteractorActor)
 
 		if (CharacterInventory)
 		{
-			UItemBase* ItemCopy = ItemInstance->CreateItemCopy(CharacterInventory);
+			UItemBase* ItemCopy = ItemInstance->CreateItemCopy();
 
 			if (CharacterInventory->AddItem(ItemCopy))
 			{
@@ -62,6 +62,10 @@ void AItemPickup::Interact_Implementation(AActor* InteractorActor)
 			else
 			{
 				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, TEXT("Inventory is full!"));
+				if (ItemCopy)
+				{
+					ItemCopy->MarkAsGarbage();
+				}
 			}
 		}
 		else
