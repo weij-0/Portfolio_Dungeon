@@ -34,8 +34,7 @@ public:
 	/* Functions */
 
 	/* Interaction Interface */
-	virtual void ShowInteractionPrompt_Implementation() override;
-	virtual void HideInteractionPrompt_Implementation() override;
+	virtual bool CanInteract_Implementation(AActor* Interactor) const override;
 	virtual void Interact_Implementation(AActor* InteractorActor) override;
 	virtual FInteractionData GetInteractionData_Implementation() const override;
 

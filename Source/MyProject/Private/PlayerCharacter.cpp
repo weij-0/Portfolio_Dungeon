@@ -19,6 +19,8 @@
 #include "ItemPickup.h"
 #include "InventoryComponent.h"
 #include "InteractionInterface.h"
+#include "InteractTraceComponent.h"
+#include "InteractableComponent.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -76,6 +78,9 @@ APlayerCharacter::APlayerCharacter()
 
 	/* Inventory Component */
 	PlayerInventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("PlayerInventoryComponent"));
+
+	/* Interact Trace Component */
+	InteractTraceComponent = CreateDefaultSubobject<UInteractTraceComponent>(TEXT("InteractTraceComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -135,9 +140,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// Perform Line Trace every frame to detect Interactable Actors
-	PerformInteractionTrace();
-
 	if (GetStaminaComponent())
 	{
 		if (bIsSprint && CurrentStamina > 0.0f)
@@ -184,7 +186,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &APlayerCharacter::CrouchCompleted);
 
 		// Interact (F)
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &APlayerCharacter::InteractButtonItemPickup);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &APlayerCharacter::Interact);
 
 		// Inventory (I)
 		EnhancedInputComponent->BindAction(ToggleInventoryAction, ETriggerEvent::Started, this, &APlayerCharacter::ToggleInventoryPressed);
@@ -307,13 +309,10 @@ void APlayerCharacter::JumpOrDash(const FInputActionValue& Value)
 }
 
 // Interact Action (F)
-void APlayerCharacter::InteractButtonItemPickup(const FInputActionValue& Value)
+void APlayerCharacter::Interact(const FInputActionValue& Value)
 {
-	if (CurrentTargetInteraction && CurrentTargetInteraction->Implements<UInteractionInterface>())
-	{
-		// Trigger the interaction logic in the interacting actor
-		IInteractionInterface::Execute_Interact(CurrentTargetInteraction, this);
-	}
+	// Trigger the interaction logic in the InteractTraceComponent
+	InteractTraceComponent->TryInteract();
 }
 
 // Toggle Inventory Action (I)
@@ -409,66 +408,5 @@ void APlayerCharacter::HideStaminaWidget()
 	if (StaminaWidgetComponent)
 	{
 		StaminaWidgetComponent->SetVisibility(false);
-	}
-}
-
-void APlayerCharacter::PerformInteractionTrace()
-{
-	if (FollowCamera)
-	{
-		/* Line tracing from camera to endpoints */
-
-		const FVector StartPoint = FollowCamera->GetComponentLocation();
-		const FVector ForwardVector = FollowCamera->GetForwardVector();
-		const FVector EndPoint = StartPoint + (ForwardVector * InteractionTraceDistance);
-
-		// Physics query parameters
-		FHitResult HitResult;
-		FCollisionQueryParams TraceParams;
-		TraceParams.AddIgnoredActor(this);
-
-		if (GetWorld()->LineTraceSingleByChannel(HitResult, StartPoint, EndPoint, ECC_Visibility, TraceParams))
-		{
-			AActor* HitActor = HitResult.GetActor();
-
-			if (HitActor && HitActor->Implements<UInteractionInterface>())
-			{
-				if (HitActor != CurrentTargetInteraction)
-				{
-					// Hide UI prompt on old target
-					if (CurrentTargetInteraction && CurrentTargetInteraction->Implements<UInteractionInterface>())
-					{
-						IInteractionInterface::Execute_HideInteractionPrompt(CurrentTargetInteraction);
-					}
-
-					CurrentTargetInteraction = HitActor;
-
-					// Show UI prompt on new target
-					IInteractionInterface::Execute_ShowInteractionPrompt(CurrentTargetInteraction);
-
-					if (CachedPlayerController && CachedPlayerController->HUDWidget)
-					{
-						CachedPlayerController->HUDWidget->SetCrosshairVisibility(true);
-					}
-				}
-				return;
-			}
-		}
-		// If LineTrace didn't hit anything
-		if (CurrentTargetInteraction) 
-		{
-			// Hide previous visible UI prompt
-			if (CurrentTargetInteraction && CurrentTargetInteraction->Implements<UInteractionInterface>())
-			{
-				IInteractionInterface::Execute_HideInteractionPrompt(CurrentTargetInteraction);
-			}
-
-			CurrentTargetInteraction = nullptr;
-
-			if (CachedPlayerController && CachedPlayerController->HUDWidget)
-			{
-				CachedPlayerController->HUDWidget->SetCrosshairVisibility(false);
-			}
-		}
 	}
 }

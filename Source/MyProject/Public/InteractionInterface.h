@@ -7,35 +7,46 @@
 #include "InteractionData.h"
 #include "InteractionInterface.generated.h"
 
-class APlayerCharacter;
 
-// This class does not need to be modified.
 UINTERFACE(MinimalAPI, BlueprintType)
 class UInteractionInterface : public UInterface
 {
 	GENERATED_BODY()
 };
 
-/**
- * 
- */  
-
 class MYPROJECT_API IInteractionInterface
 {
 	GENERATED_BODY()
 
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	void Interact(AActor* InteractorActor);
+	bool CanInteract(AActor* TargetActor) const;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
+	void Interact(AActor* TargetActor);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
 	FInteractionData GetInteractionData() const;
+};
+
+/* Interaction Focus Listener */
+
+UINTERFACE(MinimalAPI, BlueprintType)
+class UInteractionFocusListener : public UInterface
+{
+	GENERATED_BODY()
+};
+
+class MYPROJECT_API IInteractionFocusListener
+{
+	GENERATED_BODY()
+
+public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	void ShowInteractionPrompt();
+	void OnFocusGained(AActor* TargetActor);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	void HideInteractionPrompt();
+	void OnFocusLost(AActor* TargetActor);
 };

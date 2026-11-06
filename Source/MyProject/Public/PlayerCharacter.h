@@ -16,6 +16,8 @@ class AMyPlayerController;
 class UWidgetComponent;
 class UInventoryComponent;
 class UInteractionInterface;
+class UInteractTraceComponent;
+class UInteractableComponent;
 class UStaticMeshComponent;
 class UAnimMontage;
 
@@ -33,7 +35,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	virtual void PossessedBy(AController* PlayerController);
+	virtual void PossessedBy(AController* PlayerController) override;
 
 public:	
 	// Called every frame
@@ -67,7 +69,7 @@ protected:
 	void JumpOrDash(const FInputActionValue& Value);
 
 	// Interact (E)
-	void InteractButtonItemPickup(const FInputActionValue& Value);
+	void Interact(const FInputActionValue& Value);
 
 	// Inventory Input (I)
 	void ToggleInventoryPressed(const FInputActionValue& Value);
@@ -98,6 +100,7 @@ protected:
 	
 	UFUNCTION()
 	void HandleOnStaminaChanged(float NewPercent, float NewCurrentStamina, float NewMaxStamina);
+
 
 private:
 	/* Cache */
@@ -208,24 +211,15 @@ private:
 
 	void HideStaminaWidget();
 
-	
-	/* Item Pickup */
+	/* Interaction */
 
-	UPROPERTY(VisibleAnywhere, Category = "Interaction")
-	AActor* CurrentTargetInteraction;
-
-	UPROPERTY(EditAnywhere, Category = "Interaction")
-	float InteractionTraceDistance = 600.0f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInteractTraceComponent> InteractTraceComponent;
 
 	/* Animation Montages */
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation|Attack", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAnimMontage> BasicAttack = nullptr;
-
-public:
-
-	/* Interaction */
-	void PerformInteractionTrace();
 
 	
 };

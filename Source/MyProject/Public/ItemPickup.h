@@ -11,8 +11,8 @@
 class UStaticMeshComponent;
 class UItemBase;
 class APlayerCharacter;
-class UWidgetComponent;
 class UDataTable;
+class UInteractableComponent;
 
 UCLASS()
 class MYPROJECT_API AItemPickup : public AActor, public IInteractionInterface
@@ -24,30 +24,31 @@ public:
 	// Sets default values for this actor's properties
 	AItemPickup();
 
-	/* Interaction Interface */
-	virtual void ShowInteractionPrompt_Implementation() override;
-	virtual void HideInteractionPrompt_Implementation() override;
-	virtual void Interact_Implementation(AActor* InteractorActor) override;
-	virtual FInteractionData GetInteractionData_Implementation() const override;
-
-	/* Components & Properties */
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Pickup")
-	FDataTableRowHandle ItemRowHandle;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item Pickup")
-	UWidgetComponent* InteractPromptWidgetComponent;
-
 	/* Functions */
 
+	// Interaction Interface
+	virtual bool CanInteract_Implementation(AActor* Interactor) const override;
+	virtual void Interact_Implementation(AActor* Interactor) override;
+	virtual FInteractionData GetInteractionData_Implementation() const override;
+	
+	// Initialize the item pickup with data from a DataTable
 	UFUNCTION(BlueprintCallable, Category = "Item Pickup")
 	void InitializePickup(const UDataTable* ItemDataTable, FName NewItemID);
 
-	UFUNCTION(BlueprintCallable, Category = "Item Pickup|Interaction")
-	void InitializeInteractionWidget();
+	/* Components & Properties */
+	
+	// InteractableComponent
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
+	TObjectPtr<UInteractableComponent> InteractableComp;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Pickup|Interaction")
+	// Datas
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Pickup")
+	FDataTableRowHandle ItemRowHandle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Pickup|Interaction")
 	TObjectPtr<const UInputAction> InteractionAction = nullptr;
+
+	
 
 protected:
 

@@ -88,20 +88,9 @@ void ALock::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ALock::ShowInteractionPrompt_Implementation()
+bool ALock::CanInteract_Implementation(AActor* Interactor) const
 {
-	if (InteractPromptWidgetComponent && !TriggerInteractComp->GetIsTriggered())
-	{
-		InteractPromptWidgetComponent->SetVisibility(true);
-	}
-}
-
-void ALock::HideInteractionPrompt_Implementation()
-{
-	if (InteractPromptWidgetComponent)
-	{
-		InteractPromptWidgetComponent->SetVisibility(false);
-	}
+	return TriggerInteractComp && !TriggerInteractComp->GetIsTriggered();
 }
 
 void ALock::Interact_Implementation(AActor* InteractorActor)
@@ -109,12 +98,6 @@ void ALock::Interact_Implementation(AActor* InteractorActor)
 	if (TriggerInteractComp && InteractorActor)
 	{
 		TriggerInteractComp->Trigger(true, InteractorActor);
-
-		// Hide prompt if the trigger succeeded
-		if (TriggerInteractComp->GetIsTriggered())
-		{
-			HideInteractionPrompt_Implementation();
-		}
 	}
 }
 

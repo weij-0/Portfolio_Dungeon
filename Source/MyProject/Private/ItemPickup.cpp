@@ -5,8 +5,7 @@
 #include "ItemBase.h"
 #include "InventoryComponent.h"
 #include "PlayerCharacter.h"
-#include "Components/WidgetComponent.h"
-#include "InteractionWidget.h"
+#include "InteractableComponent.h"
 
 // Sets default values
 AItemPickup::AItemPickup()
@@ -21,34 +20,21 @@ AItemPickup::AItemPickup()
 
 	ItemMesh->SetSimulatePhysics(true);
 
-	/* Widget Component */
-	InteractPromptWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractPromptWidgetComponent"));
-	InteractPromptWidgetComponent->SetupAttachment(RootComponent);
-	InteractPromptWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
-	InteractPromptWidgetComponent->SetVisibility(false);
+	/* Interactable Component */
+	InteractableComp = CreateDefaultSubobject<UInteractableComponent>(TEXT("InteractableComp"));
+	InteractableComp->SetupAttachment(RootComponent);
 }
 
-void AItemPickup::ShowInteractionPrompt_Implementation()
+bool AItemPickup::CanInteract_Implementation(AActor* Interactor) const
 {
-	if (InteractPromptWidgetComponent)
-	{
-		InteractPromptWidgetComponent->SetVisibility(true);
-	}
+	return ItemInstance != nullptr;
 }
 
-void AItemPickup::HideInteractionPrompt_Implementation()
+void AItemPickup::Interact_Implementation(AActor* Interactor)
 {
-	if (InteractPromptWidgetComponent)
+	if (Interactor && ItemInstance)
 	{
-		InteractPromptWidgetComponent->SetVisibility(false);
-	}
-}
-
-void AItemPickup::Interact_Implementation(AActor* InteractorActor)
-{
-	if (InteractorActor && ItemInstance)
-	{
-		UInventoryComponent* CharacterInventory = InteractorActor->FindComponentByClass<UInventoryComponent>();
+		UInventoryComponent* CharacterInventory = Interactor->FindComponentByClass<UInventoryComponent>();
 
 		if (CharacterInventory)
 		{
@@ -96,26 +82,6 @@ void AItemPickup::InitializePickup(const UDataTable* ItemDataTable, FName NewIte
 	ProcessDataInitialization(ItemDataTable, NewItemID);
 }
 
-void AItemPickup::InitializeInteractionWidget()
-{
-	if (InteractPromptWidgetComponent)
-	{
-		UInteractionWidget* InteractionWidget = Cast<UInteractionWidget>(InteractPromptWidgetComponent->GetUserWidgetObject());
-		
-		if (!InteractionWidget)
-		{
-			// Force construction if Slate hasn't initialized the widget yet
-			InteractPromptWidgetComponent->InitWidget();
-			InteractionWidget = Cast<UInteractionWidget>(InteractPromptWidgetComponent->GetUserWidgetObject());
-		}
-
-		if (InteractionWidget)
-		{
-			InteractionWidget->SetInteractionData(GetInteractionData_Implementation());
-		}
-	}
-}
-
 // Called when the game starts or when spawned
 void AItemPickup::BeginPlay()
 {
@@ -126,8 +92,6 @@ void AItemPickup::BeginPlay()
 	{
 		ProcessDataInitialization(ItemRowHandle.DataTable, ItemRowHandle.RowName);
 	}
-
-	InitializeInteractionWidget();
 }
 
 void AItemPickup::ProcessDataInitialization(const UDataTable* ItemDataTable, FName NewItemID)
@@ -175,8 +139,6 @@ void AItemPickup::ProcessDataInitialization(const UDataTable* ItemDataTable, FNa
 						ItemMesh->WakeAllRigidBodies();
 					}
 				}
-
-				InitializeInteractionWidget();
 			}
 		}
 	}	
