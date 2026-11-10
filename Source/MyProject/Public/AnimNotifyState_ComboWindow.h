@@ -6,6 +6,7 @@
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "AnimNotifyState_ComboWindow.generated.h"
 
+class UComboAttackComponent;
 /**
  * 
  */
@@ -16,9 +17,13 @@ class MYPROJECT_API UAnimNotifyState_ComboWindow : public UAnimNotifyState
 	
 public:
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combo Window")
-	float ComboWindowStart;
+	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
+	
+	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combo Window")
-	float ComboWindowEnd;
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combo")
+	class UComboAttackComponent* ComboComp;
+
 };

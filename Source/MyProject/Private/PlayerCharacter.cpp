@@ -21,6 +21,7 @@
 #include "InteractionInterface.h"
 #include "InteractTraceComponent.h"
 #include "InteractableComponent.h"
+#include "ComboAttackComponent.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -81,6 +82,9 @@ APlayerCharacter::APlayerCharacter()
 
 	/* Interact Trace Component */
 	InteractTraceComponent = CreateDefaultSubobject<UInteractTraceComponent>(TEXT("InteractTraceComponent"));
+
+	/* Combo Attack Component */
+	ComboAttackComponent = CreateDefaultSubobject<UComboAttackComponent>(TEXT("ComboAttackComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -324,21 +328,16 @@ void APlayerCharacter::ToggleInventoryPressed(const FInputActionValue& Value)
 
 void APlayerCharacter::Attack(const FInputActionValue& Value)
 {
-	if (!BasicAttack)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Attack Failed: 'BasicAttack' Montage property is NULL! Assign it in BP details."));
-		return;
-	}
-
 	if (!GetMesh() || !GetMesh()->GetAnimInstance())
 	{
 		UE_LOG(LogTemp, Error, TEXT("Attack Failed: Mesh or AnimInstance is missing on character!"));
 		return;
 	}
 
-	float Duration = PlayAnimMontage(BasicAttack);
-	UE_LOG(LogTemp, Warning, TEXT("PlayAnimMontage Executed. Returned Duration: %f seconds"), Duration);
-
+	if (ComboAttackComponent)
+	{
+		ComboAttackComponent->RequestAttack();
+	}
 }
 
 // Stamina

@@ -19,6 +19,7 @@ class UInteractionInterface;
 class UInteractTraceComponent;
 class UInteractableComponent;
 class UStaticMeshComponent;
+class UComboAttackComponent;
 class UAnimMontage;
 
 UCLASS()
@@ -84,6 +85,10 @@ protected:
 	// Inventory Component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
 	UInventoryComponent* PlayerInventoryComponent;
+
+	// Combo Attack Component
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ComboAttack")
+	UComboAttackComponent* ComboAttackComponent;
 
 	// Active UI widget instance cache
 	UPROPERTY(BlueprintReadWrite, Category = "UI")
@@ -216,10 +221,6 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInteractTraceComponent> InteractTraceComponent;
 
-	/* Animation Montages */
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation|Attack", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UAnimMontage> BasicAttack = nullptr;
 
 	
 };
