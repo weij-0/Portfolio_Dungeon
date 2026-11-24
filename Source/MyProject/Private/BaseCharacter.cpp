@@ -34,9 +34,20 @@ void ABaseCharacter::BeginPlay()
 		HealthComponent->OnHitReact.AddUniqueDynamic(this, &ABaseCharacter::HandleOnHitReact);
 	}
 
+	// Dynamic Components
+
 	ManaComponent = FindComponentByClass<UManaComponent>();
 	StaminaComponent = FindComponentByClass<UStaminaComponent>();
 
+	if (!ManaComponent)
+	{
+		UE_LOG(LogTemp, Display, TEXT("Mana Component not found on %s"), *GetName());
+	}
+
+	if (!StaminaComponent)
+	{
+		UE_LOG(LogTemp, Display, TEXT("Stamina Component not found on %s"), *GetName());
+	}
 }
 
 void ABaseCharacter::ExecuteMeleeHit(FName SocketName, float Damage, float Radius)

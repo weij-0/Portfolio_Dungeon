@@ -14,6 +14,7 @@ class UAnimMontage;
 class AProjectile;
 class USceneComponent;
 class UInputAction;
+class UWidgetComponent;
 
 UCLASS()
 class MYPROJECT_API ABaseCharacter : public ACharacter
@@ -30,9 +31,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	bool bIsAlive = true;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction")
-	TObjectPtr<const UInputAction> InteractionAction = nullptr;
 
 	/* Functions */
 

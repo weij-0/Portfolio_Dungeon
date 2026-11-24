@@ -30,6 +30,9 @@ public:
 	UFUNCTION()
 	void CloseComboWindow();
 
+	UFUNCTION()
+	void CancelCombo();
+
 	// Attack/Reset (from PlayerCharacter)
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	bool RequestAttack();

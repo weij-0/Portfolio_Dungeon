@@ -9,10 +9,6 @@
 #include "TriggerInteractComponent.h"
 #include "MoverAComponent.h"
 #include "InventoryComponent.h"
-#include "Components/WidgetComponent.h"
-#include "InteractionWidget.h"
-
-#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ALock::ALock()
@@ -55,37 +51,12 @@ void ALock::BeginPlay()
 	// Dynamic Components
 	TriggerBoxComp = FindComponentByClass<UTriggerBoxComponent>();
 	TriggerInteractComp = FindComponentByClass<UTriggerInteractComponent>();
-	InteractPromptWidgetComponent = FindComponentByClass<UWidgetComponent>();
-
-	if (TriggerBoxComp)
-	{
-		UE_LOG(LogTemp, Display, TEXT("Trigger Box Component found on %s"), *GetName());
-	}
-
-	if (TriggerInteractComp)
-	{
-		UE_LOG(LogTemp, Display, TEXT("Trigger Interact Component found on %s"), *GetName());
-	}
-
-	if (InteractPromptWidgetComponent)
-	{
-		UE_LOG(LogTemp, Display, TEXT("Trigger Interact Component found on %s"), *GetName());
-		InteractPromptWidgetComponent->SetVisibility(false);
-	}
 
 	// Key Item Mesh Visibility
 	if (KeyItemMesh)
 	{
 		KeyItemMesh->SetVisibility(bIsKeyPlaced);
 	}
-
-	InitializeInteractionWidget();
-}
-
-// Called every frame
-void ALock::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 }
 
 bool ALock::CanInteract_Implementation(AActor* Interactor) const
@@ -110,26 +81,6 @@ FInteractionData ALock::GetInteractionData_Implementation() const
 	Data.InputAction = InteractionAction;
 
 	return Data;
-}
-
-void ALock::InitializeInteractionWidget()
-{
-	if (InteractPromptWidgetComponent)
-	{
-		UInteractionWidget* InteractionWidget = Cast<UInteractionWidget>(InteractPromptWidgetComponent->GetUserWidgetObject());
-
-		if (!InteractionWidget)
-		{
-			// Force construction if Slate hasn't initialized the widget yet
-			InteractPromptWidgetComponent->InitWidget();
-			InteractionWidget = Cast<UInteractionWidget>(InteractPromptWidgetComponent->GetUserWidgetObject());
-		}
-
-		if (InteractionWidget)
-		{
-			InteractionWidget->SetInteractionData(GetInteractionData_Implementation());
-		}
-	}
 }
 
 bool ALock::ProcessLockCheckInventory(AActor* ActorToCheck)

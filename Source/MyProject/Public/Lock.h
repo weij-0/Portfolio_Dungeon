@@ -28,8 +28,6 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 	/* Functions */
 
@@ -37,9 +35,6 @@ public:
 	virtual bool CanInteract_Implementation(AActor* Interactor) const override;
 	virtual void Interact_Implementation(AActor* InteractorActor) override;
 	virtual FInteractionData GetInteractionData_Implementation() const override;
-
-	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	void InitializeInteractionWidget();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction")
 	TObjectPtr<const UInputAction> InteractionAction = nullptr;
@@ -57,6 +52,8 @@ public:
 	void SetIsKeyPlaced(bool NewIsKeyPlaced);
 
 protected:
+
+	/* Mesh / Scene Components */
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Component")
 	USceneComponent* RootComp;
@@ -80,9 +77,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UTriggerInteractComponent* TriggerInteractComp;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UWidgetComponent* InteractPromptWidgetComponent;
 
 	/* Properties */
 

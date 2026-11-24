@@ -31,14 +31,6 @@ public:
 	// Sets default values for this character's properties
 	APlayerCharacter();
 
-protected:
-
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-	virtual void PossessedBy(AController* PlayerController) override;
-
-public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -48,7 +40,16 @@ public:
 	// Team 0 = Player
 	virtual FGenericTeamId GetGenericTeamId() const override { return FGenericTeamId(0); }
 
+	// Setters & Getters
+	void SetGameplaySuspended(bool bSuspended);
+
 protected:
+
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+	virtual void PossessedBy(AController* PlayerController) override;
+
 	/* Input Function Calls */
 
 	// Move

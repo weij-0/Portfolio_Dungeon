@@ -87,6 +87,21 @@ APlayerCharacter::APlayerCharacter()
 	ComboAttackComponent = CreateDefaultSubobject<UComboAttackComponent>(TEXT("ComboAttackComponent"));
 }
 
+void APlayerCharacter::SetGameplaySuspended(bool bSuspended)
+{
+	if (bSuspended)
+	{
+		StopSprint();
+		ComboAttackComponent->CancelCombo();
+		InteractTraceComponent->ClearFocus();
+		InteractTraceComponent->SetComponentTickEnabled(false);
+	}
+	else
+	{
+		InteractTraceComponent->SetComponentTickEnabled(true);
+	}
+}
+
 // Called when the game starts or when spawned
 void APlayerCharacter::BeginPlay()
 {
@@ -109,20 +124,12 @@ void APlayerCharacter::PossessedBy(AController* PlayerController)
 
 		HealthComponent->OnDeath.AddUniqueDynamic(this, &APlayerCharacter::HandleOnDeath);
 	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter: HealthComponent is not valid!"));
-	}
 
 	// Initialize Mana Component
 	if (GetManaComponent())
 	{
 		CurrentMana = MaxMana;
 		ManaComponent->InitializeMana(MaxMana, CurrentMana);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter: ManaComponent is not valid!"));
 	}
 
 	// Initialize Stamina Component
@@ -132,10 +139,6 @@ void APlayerCharacter::PossessedBy(AController* PlayerController)
 
 		CurrentStamina = MaxStamina;
 		StaminaComponent->InitializeStamina(MaxStamina, CurrentStamina);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter: StaminaComponent is not valid!"));
 	}
 }
 
@@ -316,7 +319,10 @@ void APlayerCharacter::JumpOrDash(const FInputActionValue& Value)
 void APlayerCharacter::Interact(const FInputActionValue& Value)
 {
 	// Trigger the interaction logic in the InteractTraceComponent
-	InteractTraceComponent->TryInteract();
+	if(!InteractTraceComponent->TryInteract())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("TryInteract failed!"));
+	}
 }
 
 // Toggle Inventory Action (I)

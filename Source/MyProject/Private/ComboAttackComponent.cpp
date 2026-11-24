@@ -32,6 +32,22 @@ void UComboAttackComponent::CloseComboWindow()
 	bComboWindowOpen = false;
 }
 
+void UComboAttackComponent::CancelCombo()
+{
+	if (!bIsAttacking) return;
+
+	if (UAnimInstance* AnimInstance = GetOwnerAnimInstance())
+	{
+		// The end delegate resets the state and broadcasts OnComboFinished
+		AnimInstance->Montage_Stop(0.2f, CurrentMontage);
+	}
+	else
+	{
+		ResetCombo();
+		OnComboEnded.Broadcast(true);
+	}
+}
+
 bool UComboAttackComponent::RequestAttack()
 {
 

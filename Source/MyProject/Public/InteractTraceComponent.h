@@ -6,6 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "InteractTraceComponent.generated.h"
 
+#define ECC_Interaction ECC_GameTraceChannel2
+
 class UInteractableComponent;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -46,7 +48,7 @@ protected:
 	float InteractionTraceDistance = 250.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction")
-	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_Visibility;
+	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_Interaction;
 
 private:
 	
